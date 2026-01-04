@@ -172,13 +172,13 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 #### Part 1: Prerequisites Overview
 
-https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
+https://github.com/user-attachments/assets/cdf6cc4e-ae3b-44ce-a1e6-937b1eeb4ca3
 
 _Covers: CSV configuration, PAT tokens, service connections, and variable groups_
 
 #### Part 2: Advanced Configuration
 
-https://github.com/user-attachments/assets/cdf6cc4e-ae3b-44ce-a1e6-937b1eeb4ca3
+https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
 
 _Covers: Additional setup and configuration details_
 
