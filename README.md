@@ -168,11 +168,19 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 ### 📹 Video Walkthrough: Prerequisites Setup
 
-> **Watch this video guide** before starting your first migration:
+> **Watch these video guides** before starting your first migration:
 
-https://github.com/user-attachments/assets/b0532143-9f5f-4977-a3cb-24983d5d243f
+#### Part 1: Prerequisites Overview
+
+https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
 
 _Covers: CSV configuration, PAT tokens, service connections, and variable groups_
+
+#### Part 2: Advanced Configuration
+
+https://github.com/user-attachments/assets/cdf6cc4e-ae3b-44ce-a1e6-937b1eeb4ca3
+
+_Covers: Additional setup and configuration details_
 
 <!-- 
 📝 HOW TO EMBED VIDEOS IN THIS README:
