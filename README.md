@@ -1,4 +1,4 @@
-# 🚀 ADO to GitHub Migration Pipeline
+# 🚀 Azure DevOps to GitHub Migration Pipeline
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Pipeline](https://img.shields.io/badge/Pipeline-Azure%20DevOps-0078D7.svg)](https://azure.microsoft.com/en-us/services/devops/)
@@ -124,11 +124,6 @@ Executes `2_migration.sh` to:
 - Create `repos_with_status.csv` tracking success/failure for each repository
 - Publish artifact for downstream stages
 
-<!-- 📹 VIDEO: Migration in Action
-<video src="https://github.com/USER/REPO/assets/12345/migration_demo.mp4" controls width="100%"></video>
-**📺 [Watch: Repository Migration Demo](media/migration_demo.mp4)**
--->
-
 ### Stage 4: Repository Migration Validation
 Executes `3_post_migration_validation.sh` (operates on successfully migrated repos only) to:
 
@@ -145,11 +140,6 @@ Executes `4_rewire_pipeline.sh` (operates on successfully migrated repos only) t
 - Rewire Azure DevOps pipelines to point to GitHub repositories
 - Validate GitHub service connection availability
 
-<!-- 📹 VIDEO: Pipeline Rewiring
-<video src="https://github.com/USER/REPO/assets/12345/pipeline_rewiring.mp4" controls width="100%"></video>
-**📺 [Watch: Pipeline Rewiring Demo](media/pipeline_rewiring.mp4)**
--->
-
 ### Stage 6: Azure Boards Integration
 Executes `5_boards_integration.sh` (operates on successfully migrated repos only) to:
 
@@ -157,16 +147,11 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 - Integrate Azure Boards with migrated GitHub repositories
 - Enable AB# work item linking in commits and pull requests
 
-<!-- 📹 VIDEO: Boards Integration
-<video src="https://github.com/USER/REPO/assets/12345/boards_integration.mp4" controls width="100%"></video>
-**📺 [Watch: Azure Boards Integration Demo](media/boards_integration.mp4)**
--->
-
 ---
 
 ## ⚙️ Prerequisites
 
-### 📹 Video Walkthrough: Prerequisites Setup
+
 
 > **Watch these video guides** before starting your first migration:
 
@@ -180,7 +165,7 @@ _Covers: CSV configuration, PAT tokens, service connections, and variable groups
 
 https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
 
-_Covers: Additional setup and configuration details_
+_Covers: the pipeline design and how it works_
 
 <!-- 
 📝 HOW TO EMBED VIDEOS IN THIS README:
@@ -284,8 +269,7 @@ Create a GitHub service connection in Azure DevOps:
 
 **Example:**
 ```csv
-serviceConnection
-3dfa8dac-601c-4b68-a4eb-29737c5ebf04
+serviceConnection: 3dfa8dac-601c-4b68-a4eb-29737c5ebf04
 ```
 
 [Learn more about service connections](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
@@ -343,11 +327,6 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
 ---
 
 ## 🚀 Quick Start: Your First Migration
-
-<!-- 📹 VIDEO EMBED: Quick Start Demo
-<video src="https://github.com/USER/REPO/assets/12345/quick_start_demo.mp4" controls width="100%"></video>
-**📺 [Watch: Quick Start Walkthrough](media/quick_start_demo.mp4)**
--->
 
 **Before you begin**, ensure you've completed the [Prerequisites](#️-prerequisites):
 - ✅ Created 3 PAT tokens (1 ADO, 2 GitHub)
