@@ -152,7 +152,7 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 ## ⚠️ Limitations
 
-#### 1. What Gets Migrated
+#### 1️⃣ What Gets Migrated 
 - Git repository content (all files)
 - Complete commit history
 - All branches and tags
@@ -167,7 +167,7 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
-#### 2. Pipeline Timeout
+#### 2️⃣ Pipeline Timeout
 - Microsoft-hosted Ubuntu agents timeout after 6 hours per job
 - The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent
 - If migration takes longer than 6 hours, the Azure DevOps pipeline will timeout, but the migration continues running on GitHub's servers
@@ -182,11 +182,11 @@ gh migration monitor
 
 [GitHub Migration Monitor](https://github.com/mona-actions/gh-migration-monitor)
 
-#### 3. Pipeline Rewiring
+#### 3️⃣ Pipeline Rewiring
 - Only YAML-based pipelines are supported
 - Classic pipelines (UI-defined) are NOT supported
 
-#### 4. Repository Size Limits
+#### 4️⃣ Repository Size Limits
 The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
 
 | Item | Maximum Size |
@@ -214,7 +214,7 @@ https://github.com/user-attachments/assets/cdf6cc4e-ae3b-44ce-a1e6-937b1eeb4ca3
 
 _Covers: CSV configuration, PAT tokens, service connections, and variable groups_
 
-#### Part 2: Advanced Configuration
+#### Part 2: Pipeline info
 
 https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
 
