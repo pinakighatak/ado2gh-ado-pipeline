@@ -152,9 +152,8 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 ## ⚠️ Limitations
 
-### What Gets Migrated
+#### 1. What Gets Migrated
 
-**Migrated:**
 - Git repository content (all files)
 - Complete commit history
 - All branches and tags
@@ -171,9 +170,8 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 ---
 
-### Pipeline Timeout Behavior
+#### 2. Pipeline Timeout
 
-**Azure DevOps Agent Timeout:**
 - Microsoft-hosted Ubuntu agents timeout after 6 hours per job
 - The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent
 - If migration takes longer than 6 hours, the Azure DevOps pipeline will timeout, but the migration continues running on GitHub's servers
@@ -191,14 +189,14 @@ gh migration monitor
 
 ---
 
-### Pipeline Rewiring Support
+#### 3. Pipeline Rewiring
 
 - Only YAML-based pipelines are supported
 - Classic pipelines (UI-defined) are NOT supported
 
 ---
 
-### Repository Size Limits
+#### 4. Repository Size Limits
 
 The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
 
