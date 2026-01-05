@@ -26,6 +26,7 @@ At enterprise scale, this pipeline overcomes the following challenges:
 ## 📋 Table of Contents
 
 - [Pipeline Execution Model](#-pipeline-execution-model)
+- [Limitations](#-limitations)
 - [Prerequisites](#️-prerequisites)
 - [Quick Start](#-quick-start-your-first-migration)
 - [FAQ](#-frequently-asked-questions)
@@ -146,6 +147,71 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 - Validate GitHub and ADO PAT token scopes
 - Integrate Azure Boards with migrated GitHub repositories
 - Enable AB# work item linking in commits and pull requests
+
+---
+
+## ⚠️ Limitations
+
+### What Gets Migrated
+
+**Migrated:**
+- Git repository content (all files)
+- Complete commit history
+- All branches and tags
+- Commit metadata (authors, dates, messages, SHAs)
+
+**NOT Migrated:**
+- Pull requests
+- Work items
+- Build/release history
+- Repository settings (branch policies, permissions, webhooks)
+- Wiki pages
+
+**Recommendation:** Complete or abandon all active pull requests before migrating.
+
+---
+
+### Pipeline Timeout Behavior
+
+**Azure DevOps Agent Timeout:**
+- Microsoft-hosted Ubuntu agents timeout after 6 hours per job
+- The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent
+- If migration takes longer than 6 hours, the Azure DevOps pipeline will timeout, but the migration continues running on GitHub's servers
+
+**Track Long-Running Migrations:**
+
+If your pipeline times out, monitor migration progress using the GitHub CLI:
+
+```bash
+gh extension install mona-actions/gh-migration-monitor
+gh migration monitor
+```
+
+[GitHub Migration Monitor](https://github.com/mona-actions/gh-migration-monitor)
+
+---
+
+### Pipeline Rewiring Support
+
+- Only YAML-based pipelines are supported
+- Classic pipelines (UI-defined) are NOT supported
+
+---
+
+### Repository Size Limits
+
+The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
+
+| Item | Maximum Size |
+|------|--------------|
+| Repository archive | ~40 GiB |
+| Single file (during migration) | 400 MiB |
+| Single file (after migration) | 100 MiB (larger files must use Git LFS) |
+| Single commit | 2 GiB |
+
+
+
+
 
 ---
 
