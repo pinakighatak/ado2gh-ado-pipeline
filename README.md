@@ -1,4 +1,4 @@
-# 🚀 Azure DevOps to GitHub Migration Pipeline
+# 🚀 Azure DevOps to GitHub repo Migration Pipeline
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Pipeline](https://img.shields.io/badge/Pipeline-Azure%20DevOps-0078D7.svg)](https://azure.microsoft.com/en-us/services/devops/)
