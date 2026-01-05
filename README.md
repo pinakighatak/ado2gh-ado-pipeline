@@ -51,7 +51,7 @@ Stage 3 (Repository Migration) publishes a `repos_with_status.csv` artifact that
 Stage 5 (Pipeline Rewiring) has additional logic: it reads pipeline definitions from `pipelines.csv`, then cross-references with `repos_with_status.csv` to ensure rewiring only occurs for repositories that migrated successfully.
 
 **Manual Approval Gate:**  
-After Stage 2 (Pre-migration Check), the pipeline pauses for manual approval. This allows you to review the readiness report—which identifies active pull requests and running pipelines—before proceeding with migration. The approval gate has a 3-day timeout and auto-rejects if not approved.
+After Stage 2 (Pre-migration Check), the pipeline pauses for manual approval. This allows you to review the readiness report which identifies active pull requests and running pipelines—before proceeding with migration. The approval gate has a 3-day timeout and auto-rejects if not approved.
 
 **Stage Dependencies:**  
 Stages 1-3 require strict success (`condition: succeeded()`). Stages 4-6 tolerate partial failures and will execute even if the previous stage completes with issues (`condition: in(...result, 'Succeeded', 'SucceededWithIssues')`).
@@ -153,7 +153,6 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 ## ⚠️ Limitations
 
 #### 1. What Gets Migrated
-
 - Git repository content (all files)
 - Complete commit history
 - All branches and tags
@@ -169,13 +168,11 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
 #### 2. Pipeline Timeout
-
 - Microsoft-hosted Ubuntu agents timeout after 6 hours per job
 - The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent
 - If migration takes longer than 6 hours, the Azure DevOps pipeline will timeout, but the migration continues running on GitHub's servers
 
 **Track Long-Running Migrations:**
-
 If your pipeline times out, monitor migration progress using the GitHub CLI:
 
 ```bash
@@ -186,12 +183,10 @@ gh migration monitor
 [GitHub Migration Monitor](https://github.com/mona-actions/gh-migration-monitor)
 
 #### 3. Pipeline Rewiring
-
 - Only YAML-based pipelines are supported
 - Classic pipelines (UI-defined) are NOT supported
 
 #### 4. Repository Size Limits
-
 The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
 
 | Item | Maximum Size |
