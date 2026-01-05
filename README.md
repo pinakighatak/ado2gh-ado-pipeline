@@ -228,11 +228,11 @@ _Covers: the pipeline design and how it works_
 
 ---
 
-### Required Setup
+### Initial Setup
 
 Complete these steps before your first pipeline run:
 
-#### 1. 🗂️ CSV Configuration Files
+#### 1️⃣ 🗂️ CSV Configuration Files
 
 Edit two CSV template files in the `bash/` directory to define your migration scope:
 
@@ -264,7 +264,7 @@ Edit two CSV template files in the `bash/` directory to define your migration sc
 
 ---
 
-#### 2. 🔐 Authentication Tokens
+#### 2️⃣ 🔐 Authentication Tokens
 
 Create **3 PAT tokens** with the following scopes:
 
@@ -305,7 +305,7 @@ Create **3 PAT tokens** with the following scopes:
 
 ---
 
-#### 3. 🧩 GitHub Service Connection
+#### 3️⃣ 🧩 GitHub Service Connection
 
 Create a GitHub service connection in Azure DevOps:
 
@@ -324,7 +324,7 @@ serviceConnection: 3dfa8dac-601c-4b68-a4eb-29737c5ebf04
 
 ---
 
-#### 4. 🔐 Variable Groups
+#### 4️⃣ 🔐 Variable Groups
 
 Store your PAT tokens (from Prerequisite #2) in two Azure DevOps Variable Groups:
 
@@ -346,9 +346,7 @@ Store your PAT tokens (from Prerequisite #2) in two Azure DevOps Variable Groups
 
 ---
 
-### Optional Configurations
-
-#### 5. 🧪 Demo Mode
+#### 5️⃣ 🧪 Demo Mode
 
 Test the migration process without post-migration stages (Validation, Rewiring, Boards Integration).
 
