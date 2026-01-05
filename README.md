@@ -26,7 +26,7 @@ At enterprise scale, this pipeline overcomes the following challenges:
 ## 📋 Table of Contents
 
 - [Pipeline Execution Model](#-pipeline-execution-model)
-- [Limitations](#-limitations)
+- [Limitations](#️-limitations)
 - [Prerequisites](#️-prerequisites)
 - [Quick Start](#-quick-start-your-first-migration)
 - [FAQ](#-frequently-asked-questions)
