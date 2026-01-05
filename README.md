@@ -45,16 +45,11 @@ This pipeline orchestrates a **six-stage sequential migration process** from Azu
 
 ### Key Features
 
-**Partial Success:**  
-Stage 3 (Repository Migration) publishes a `repos_with_status.csv` artifact that tracks which repositories migrated successfully and which failed. Stages 4-6 consume this artifact and execute **only against successfully migrated repositories**.
+- **Partial Success:**  Stage 3 (Repository Migration) publishes a `repos_with_status.csv` artifact that tracks which repositories migrated successfully and which failed. Stages 4-6 consume this artifact and execute **only against successfully migrated repositories**. Stage 5 (Pipeline Rewiring) has additional logic: it reads pipeline definitions from `pipelines.csv`, then cross-references with `repos_with_status.csv` to ensure rewiring only occurs for repositories that migrated successfully.
 
-Stage 5 (Pipeline Rewiring) has additional logic: it reads pipeline definitions from `pipelines.csv`, then cross-references with `repos_with_status.csv` to ensure rewiring only occurs for repositories that migrated successfully.
+- **Manual Approval Gate:**  After Stage 2 (Pre-migration Check), the pipeline pauses for manual approval. This allows you to review the readiness report which identifies active pull requests and running pipelines—before proceeding with migration. The approval gate has a 3-day timeout and auto-rejects if not approved.
 
-**Manual Approval Gate:**  
-After Stage 2 (Pre-migration Check), the pipeline pauses for manual approval. This allows you to review the readiness report which identifies active pull requests and running pipelines—before proceeding with migration. The approval gate has a 3-day timeout and auto-rejects if not approved.
-
-**Stage Dependencies:**  
-Stages 1-3 require strict success (`condition: succeeded()`). Stages 4-6 tolerate partial failures and will execute even if the previous stage completes with issues (`condition: in(...result, 'Succeeded', 'SucceededWithIssues')`).
+- **Stage Dependencies:**  Stages 1-3 require strict success (`condition: succeeded()`). Stages 4-6 tolerate partial failures and will execute even if the previous stage completes with issues (`condition: in(...result, 'Succeeded', 'SucceededWithIssues')`).
 
 > **Technical Note:** Since Ubuntu runners do not persist state between stages, the pipeline uses artifacts for cross-stage continuity.
 
