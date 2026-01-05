@@ -168,8 +168,6 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
----
-
 #### 2. Pipeline Timeout
 
 - Microsoft-hosted Ubuntu agents timeout after 6 hours per job
@@ -187,14 +185,10 @@ gh migration monitor
 
 [GitHub Migration Monitor](https://github.com/mona-actions/gh-migration-monitor)
 
----
-
 #### 3. Pipeline Rewiring
 
 - Only YAML-based pipelines are supported
 - Classic pipelines (UI-defined) are NOT supported
-
----
 
 #### 4. Repository Size Limits
 
