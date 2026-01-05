@@ -386,14 +386,14 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
 
 ### Step-by-Step Instructions
 
-1. **Clone this pipeline repository**
+#### 1️⃣ **Clone this pipeline repository**
    ```bash
    # Clone the ado2gh-ado-pipelines repository
    git clone <your-repo-url>
    cd ado2gh-ado-pipelines
    ```
 
-2. **Prepare CSV configuration files**
+2️⃣ **Prepare CSV configuration files**
    ```bash
    # Edit repos.csv - Add 1-3 test repositories for your first run
    code bash/repos.csv
@@ -415,14 +415,14 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    mycompany,Platform,web-frontend,\web-frontend-ci,https://dev.azure.com/mycompany/Platform/_build?definitionId=456,abc123-def4-56gh-78ij-90klmn1234op,mycompany-gh,platform-web
    ```
 
-3. **Commit and push changes**
+3️⃣ **Commit and push changes**
    ```bash
    git add bash/repos.csv bash/pipelines.csv
    git commit -m "Configure migration batch: test repositories"
    git push
    ```
 
-4. **Set up the pipeline in Azure DevOps** (first-time only)
+4️⃣ **Set up the pipeline in Azure DevOps** (first-time only)
    
    **If pipeline doesn't exist:**
    - Navigate to `https://dev.azure.com/<org>/<project>` → **Pipelines** → **New Pipeline**
@@ -433,7 +433,7 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    **If pipeline already exists:**
    - Go to **Pipelines** → Select the migration pipeline → Click **Run pipeline**
 
-5. **Configure pipeline parameters**
+5️⃣ **Configure pipeline parameters**
    
    In the "Run pipeline" dialog, configure:
    
@@ -447,7 +447,7 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    
    Click **Run** to start the pipeline.
 
-6. **Monitor pipeline execution**
+6️⃣ **Monitor pipeline execution**
    
    | Stage | Key Actions | Expected Outcome |
    |-------|-------------|------------------|
@@ -459,7 +459,7 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    | **Stage 5: Pipeline Rewiring** | Download `rewiring-logs`, verify GitHub connection | ✅ Pipelines point to GitHub repos |
    | **Stage 6: Boards Integration** | Download `boards-integration-logs`, test AB#123 | ✅ Work item linking active |
 
-7. **Verify migration success**
+7️⃣ **Verify migration success**
    
    **Automated validation (Stage 4):**
    - Branch counts match between ADO and GitHub
