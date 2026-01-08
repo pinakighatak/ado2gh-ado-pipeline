@@ -2,7 +2,7 @@ trigger: none
 
 parameters:
 - name: runDemoRepoMigration
-  displayName: 'Demo Mode: Run Migration Only (Skip Stages 4-6)'
+  displayName: 'Demo Mode: Run Migration + Validation Only (Skip Stages 5-6)'
   type: boolean
   default: false
 
@@ -355,7 +355,6 @@ stages:
     dependsOn: Migration
     condition: |
       and(
-        eq('${{ parameters.runDemoRepoMigration }}', false),
         in(dependencies.Migration.result, 'Succeeded', 'SucceededWithIssues')
       )
     # PAT Tokens Used: GH_TOKEN, ADO_PAT (from core-entauto-github-migration-secrets)
