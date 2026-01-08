@@ -17,6 +17,16 @@ parameters:
   - 4
   - 5
 
+- name: useSelfHostedAgent
+  displayName: 'Use Self-Hosted Agent for Migration Stage'
+  type: boolean
+  default: false
+
+- name: selfHostedAgentPool
+  displayName: 'Self-Hosted Agent Pool Name (if enabled above)'
+  type: string
+  default: 'Default'
+
 variables:
   # Variable group for migration-related PAT tokens (Stages 1-6)
   # Contains: GH_PAT, ADO_PAT (for migration, readiness checks, validation, rewiring, boards integration)
@@ -284,6 +294,9 @@ stages:
     jobs:
       - job: RunMigration
         displayName: 'Run Migration Script'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
           
