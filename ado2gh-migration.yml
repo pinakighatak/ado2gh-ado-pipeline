@@ -353,10 +353,7 @@ stages:
   - stage: PostMigrationValidation
     displayName: 'Stage 4: Migration Validation'
     dependsOn: Migration
-    condition: |
-      and(
-        in(dependencies.Migration.result, 'Succeeded', 'SucceededWithIssues')
-      )
+    condition: in(dependencies.Migration.result, 'Succeeded', 'SucceededWithIssues')
     # PAT Tokens Used: GH_TOKEN, ADO_PAT (from core-entauto-github-migration-secrets)
     jobs:
       - job: ValidationCheck
