@@ -163,11 +163,15 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
 #### 2️⃣ Pipeline Timeout
-- Microsoft-hosted Ubuntu agents timeout after 6 hours per job
-- The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent
-- If migration takes longer than 6 hours, the Azure DevOps pipeline will timeout, but the migration continues running on GitHub's servers
+- It is recommended to run this migration pipeline on **self-hosted agents**, which allow jobs to run indefinitely by setting the timeout to 0, ensuring long-running migrations complete reliably while requiring management of the underlying infrastructure.
+- The migration itself runs on GitHub's backend servers, not on the Azure DevOps agent.
 
-**Track Long-Running Migrations:**
+**Default Job Timeouts in Azure DevOps**:
+- **Free Tier, Private Projects**: 60 minutes per job
+- **Paid Parallel Jobs, Private Projects**: 360 minutes (6 hours) per job.
+- **Public Projects**: 360 minutes (6 hours) per job (up to 10 free parallel jobs).
+- **Self-Hosted Agents**: Jobs can run indefinitely when the timeout is set to 0, though you still need to manage the underlying infrastructure. 
+- **Track Long-Running Migrations:**
 If your pipeline times out, monitor migration progress using the GitHub CLI:
 
 ```bash
