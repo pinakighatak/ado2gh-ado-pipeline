@@ -45,13 +45,13 @@ This pipeline orchestrates a **six-stage sequential migration process** from Azu
 
 ### Key Features
 
-- **Partial Success:**  Stage 3 (Repository Migration) publishes a `repos_with_status.csv` artifact that tracks which repositories migrated successfully and which failed. Stages 4-6 consume this artifact and execute **only against successfully migrated repositories**. Stage 5 (Pipeline Rewiring) has additional logic: it reads pipeline definitions from `pipelines.csv`, then cross-references with `repos_with_status.csv` to ensure rewiring only occurs for repositories that migrated successfully.
+- **Partial Success:**  **Stage 3 (Repository Migration)** publishes a `repos_with_status.csv` artifact that tracks which repositories migrated successfully and which failed. Stages 4-6 consume this artifact and execute **only against successfully migrated repositories**. **Stage 5 (Pipeline Rewiring)** has additional logic: it reads pipeline definitions from `pipelines.csv`, then cross-references with `repos_with_status.csv` to ensure rewiring only occurs for repositories that migrated successfully.
 
-- **Manual Approval Gate:**  After Stage 2 (Pre-migration Check), the pipeline pauses for manual approval. This allows you to review the readiness report which identifies active pull requests and running pipelines—before proceeding with migration. The approval gate has a 3-day timeout and auto-rejects if not approved.
+- **Manual Approval Gate:**  After **Stage 2 (Pre-migration Check)**, The pipeline pauses at a manual approval gate to allow review of active pull requests and running pipelines before migration. The approval expires after 3 days and is automatically rejected if not approved.
 
-- **Stage Dependencies:**  Stages 1-3 require strict success (`condition: succeeded()`). Stages 4-6 tolerate partial failures and will execute even if the previous stage completes with issues (`condition: in(...result, 'Succeeded', 'SucceededWithIssues')`).
+- **Stage Dependencies:**  Stages 1-3 require strict success. Stages 4-6 tolerate partial failures and will execute even if the previous stage completes with issues.
 
-> **Technical Note:** Since Ubuntu runners do not persist state between stages, the pipeline uses artifacts for cross-stage continuity.
+> **Note:** Since Ubuntu runners do not persist state between stages, the pipeline uses artifacts for cross-stage continuity.
 
 ```mermaid
 ---
@@ -61,8 +61,8 @@ config:
   look: handDrawn
 ---
 flowchart TB
-    Start["<b>Start YAML Pipeline</b>"] --> Stage1["<b>Stage 1: Prereq validation</b><br>Verify repos.csv<br>Validate CSV columns<br>Display repository count"]
-    Stage1 --> Stage2["<b>Stage 2: Pre-migration check</b><br>Check for active PR<br>Check for active pipelines<br>Generate readiness logs"]
+    Start["<b>Start YAML Pipeline</b>"] --> Stage1["<b>Stage 1: Prereq validation</b><br>Verify repos.csv & pipeline.csv"]
+    Stage1 --> Stage2["<b>Stage 2: Pre-migration check</b><br>Check for active PR and pipelines"]
     Stage2 --> Gate1["<b>User approval</b><br>Approval checkpoint to trigger the next stage"]
     Gate1 -- Approved --> Stage3["<b>Stage 3: Repository Migration</b><br>Migrate repos<br>Generate migration logs"]
     Gate1 -- Rejected --> End1["<b>Pipeline Cancelled</b>"]
