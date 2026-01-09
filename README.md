@@ -98,17 +98,12 @@ Each stage executes a specific script and generates detailed logs. Stages 4-6 au
 ### Stage 1️⃣: Prerequisite Validation
 Performs validation checks to:
 
-- Verify `bash/repos.csv` exists and is not empty
-- Validate required CSV columns: `org`, `teamproject`, `repo`, `github_org`, `github_repo`, `gh_repo_visibility`
-- Display repository count for the migration batch
-- **⚠️ Note:** `pipelines.csv` is validated in Stage 5, not Stage 1. Ensure it's properly formatted before running the pipeline.
+- Verify `bash/repos.csv` and `bash/pipeline.csv` exists.
 
 ### Stage 2️⃣: Pre-Migration Check
 Executes `1_pr_pipeline_check.sh` to:
 
 - Detects active builds, release pipelines, and pull requests
-- Identifies potential blockers before migration begins
-- Generates a readiness report
 
 > **⚠️ IMPORTANT**: The pipeline pauses here for manual approval. Review the readiness report to ensure no active PRs or running pipelines exist before proceeding to Stage 3. Timeout: 3 days (auto-rejects if not approved).
 
@@ -117,7 +112,7 @@ Executes `2_migration.sh` to:
 
 - Perform parallel migrations (configurable: 1-5 concurrent via `maxConcurrent` parameter)
 - Migrate repository content, branches, and commit history
-- Create `repos_with_status.csv` tracking success/failure for each repository
+- Create `repos_with_status.csv` tracking `success/failure` for each repository
 - Publish artifact for downstream stages
 
 ### Stage 4️⃣: Repository Migration Validation
@@ -126,20 +121,17 @@ Executes `3_post_migration_validation.sh` (operates on successfully migrated rep
 - Compare branch counts between ADO and GitHub repositories
 - Verify commit counts match for each branch
 - Validate latest commit SHAs to ensure complete migration
-- Generate validation logs
 
 ### Stage 5️⃣: Pipeline Rewiring
 Executes `4_rewire_pipeline.sh` (operates on successfully migrated repos only) to:
 
 - Read pipeline definitions from `pipelines.csv`
 - Cross-reference with `repos_with_status.csv` to filter successful migrations
-- Rewire Azure DevOps pipelines to point to GitHub repositories
-- Validate GitHub service connection availability
+- Rewire Azure DevOps pipelines to point to GitHub repositories via service connection
 
 ### Stage 6️⃣: Azure Boards Integration
 Executes `5_boards_integration.sh` (operates on successfully migrated repos only) to:
 
-- Validate GitHub and ADO PAT token scopes
 - Integrate Azure Boards with migrated GitHub repositories
 - Enable AB# work item linking in commits and pull requests
 
