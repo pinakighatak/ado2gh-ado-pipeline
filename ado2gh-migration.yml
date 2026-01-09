@@ -2,7 +2,7 @@ trigger: none
 
 parameters:
 - name: runDemoRepoMigration
-  displayName: 'Demo Mode: Run Migration + Validation Only (Skip Stages 5-6)'
+  displayName: 'Demo Mode: Run Migration + Validation Only'
   type: boolean
   default: false
 
@@ -290,6 +290,7 @@ stages:
             name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
+            clean: true
           
           - task: Bash@3
             displayName: 'Install GitHub CLI'
