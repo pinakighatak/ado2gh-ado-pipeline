@@ -265,25 +265,16 @@ stages:
             inputs:
               notifyUsers: '$(Build.RequestedForEmail)'
               instructions: |
-                ## 📋 Active PR & Pipeline Check COMPLETED
-                
-                ⚠️ **IMPORTANT**: The next stage will migrate repositories to GitHub.
+                ⚠️ **IMPORTANT**: Ensure no active work is in progress before proceeding to the next stage.
                 
                 ### 📊 What to Review
-                1. Check the readiness check logs above
-                2. Verify all repositories are accessible
-                3. Confirm GitHub organizations exist
-                4. Ensure permissions are validated
+                1. Review the logs above for any errors or warnings
+                2. Check for any active pull requests related to the repositories being migrated
+                3. Verify whether any CI pipelines are currently running or queued to run
+                4. If any related jobs are in progress, resolve or complete them before proceeding
                 
                 ### ⏭️ Next Stage: Repo Migration
-                This will:
-                - Migrate repositories to GitHub
-                - Transfer Git history
-                - Create GitHub repositories
-                
-                ---
-                
-                ✅ Click **Resume** to START MIGRATION
+                ✅ Click **Resume** to proceed to the next stage  
                 ❌ Click **Reject** to stop the pipeline
               onTimeout: 'reject'
 
