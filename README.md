@@ -63,8 +63,8 @@ config:
 flowchart TB
     Start["<b>Start YAML Pipeline</b>"] --> Stage1["<b>Stage 1: Prereq validation</b><br>Verify repos.csv & pipeline.csv"]
     Stage1 --> Stage2["<b>Stage 2: Pre-migration check</b><br>Check for active PR and pipelines"]
-    Stage2 --> Gate1["<b>User approval</b><br>Approval checkpoint to trigger the next stage"]
-    Gate1 -- Approved --> Stage3["<b>Stage 3: Repository Migration</b><br>Migrate repos<br>Generate migration logs"]
+    Stage2 --> Gate1["<b>User approval</b><br>Manual Approval to trigger the next stage"]
+    Gate1 -- Approved --> Stage3["<b>Stage 3: Repository Migration</b><br>Migrate repos with commit history and branches"]
     Gate1 -- Rejected --> End1["<b>Pipeline Cancelled</b>"]
     Stage3 --> Stage4["<b>Stage 4: Migration Validation</b><br>Compare ADO and GH repos<br>branch count<br>commit counts per branch<br>SHAs match, proving commit history is intact"]
     Stage4 --> Stage5["<b>Stage 5: Pipeline Rewiring</b><br>Validate pipelines.csv<br>rewire pipeline to GH repo<br>Validates GitHub service connection<br>Generate rewiring logs"]
