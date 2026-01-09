@@ -344,7 +344,10 @@ stages:
               GH_TOKEN: $(GH_PAT)
               GH_PAT: $(GH_PAT)
               ADO_PAT: $(ADO_PAT)
-            timeoutInMinutes: 120  # 2 hours timeout for large migrations
+            ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+              timeoutInMinutes: 0  # No timeout for self-hosted agents
+            ${{ else }}:
+              timeoutInMinutes: 120  # 2 hours timeout for Microsoft-hosted agents
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publish repos_with_status.csv'
