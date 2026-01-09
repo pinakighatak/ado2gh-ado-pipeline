@@ -41,7 +41,7 @@ At enterprise scale, this pipeline overcomes the following challenges:
 > This section is provided for **conceptual understanding** of the pipeline flow.
 > Actual execution behavior is governed by the YAML implementation.
 
-This pipeline orchestrates a **six-stage sequential migration process** from Azure DevOps to GitHub Enterprise. Each stage runs on a **Microsoft-hosted Ubuntu agent** (`ubuntu-latest`).
+This pipeline orchestrates a **six-stage sequential migration process** from Azure DevOps to GitHub Enterprise. Each stage runs on a **self-hosted Ubuntu agent** (`ubuntu-latest`).
 
 ### Key Features
 
@@ -125,8 +125,6 @@ Executes `3_post_migration_validation.sh` (operates on successfully migrated rep
 ### Stage 5️⃣: Pipeline Rewiring
 Executes `4_rewire_pipeline.sh` (operates on successfully migrated repos only) to:
 
-- Read pipeline definitions from `pipelines.csv`
-- Cross-reference with `repos_with_status.csv` to filter successful migrations
 - Rewire Azure DevOps pipelines to point to GitHub repositories via service connection
 
 ### Stage 6️⃣: Azure Boards Integration
@@ -175,7 +173,7 @@ gh migration monitor
 
 #### 3️⃣ Pipeline Rewiring
 - Only YAML-based pipelines are supported
-- Classic pipelines (UI-defined) are NOT supported
+- Classic pipelines (UI-defined) are NOT supported must be rewired manually. 
 
 #### 4️⃣ Repository Size Limits
 The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
@@ -226,9 +224,28 @@ _Covers: the pipeline design and how it works_
 
 ### Initial Setup
 
-Complete these steps before your first pipeline run:
+Complete these steps before your first migration pipeline run:
 
-#### 1️⃣ 🗂️ CSV Configuration Files
+#### 1️⃣ 🧩 GitHub Service Connection
+
+Ensure a GitHub service connection exists in Azure DevOps; create one if required:
+
+1. Navigate to **Project Settings** → **Service connections**
+2. Create new **GitHub** connection (choose "GitHub App" for best security)
+3. Grant **Contributor** permissions on target GitHub org/repos
+4. Copy the service connection ID (GUID)
+5. Add ID to `serviceConnection` column in `bash/pipelines.csv`
+
+**Example:**
+```csv
+serviceConnection: 3dfa8dac-601c-4b68-a4eb-29737c5ebf04
+```
+
+[Learn more about service connections](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
+
+---
+
+#### 2️⃣ 🗂️ CSV Configuration Files
 
 Edit two CSV template files in the `bash/` directory to define your migration scope:
 
@@ -252,15 +269,14 @@ Edit two CSV template files in the `bash/` directory to define your migration sc
 | `repo` | Azure DevOps repository name (cross-references with repos.csv) |
 | `pipeline` | Pipeline name/path (e.g., `\my-pipeline-ci`) |
 | `url` | Pipeline URL (for reference) |
-| `serviceConnection` | GitHub service connection ID (see Prerequisite #4) |
+| `serviceConnection` | GitHub service connection ID (see Prerequisite #1) |
 | `github_org` | Target GitHub organization |
 | `github_repo` | Target GitHub repository name |
 
-> **💡 Tip**: You can migrate in batches by including only a subset of repositories in each CSV file.
 
 ---
 
-#### 2️⃣ 🔐 Authentication Tokens
+#### 3️⃣ 🔐 Authentication Tokens
 
 Create **3 PAT tokens** with the following scopes:
 
@@ -299,30 +315,9 @@ Create **3 PAT tokens** with the following scopes:
 
 </details>
 
----
-
-#### 3️⃣ 🧩 GitHub Service Connection
-
-Create a GitHub service connection in Azure DevOps:
-
-1. Navigate to **Project Settings** → **Service connections**
-2. Create new **GitHub** connection (choose "GitHub App" for best security)
-3. Grant **Contributor** permissions on target GitHub org/repos
-4. Copy the service connection ID (GUID)
-5. Add ID to `serviceConnection` column in `bash/pipelines.csv`
-
-**Example:**
-```csv
-serviceConnection: 3dfa8dac-601c-4b68-a4eb-29737c5ebf04
-```
-
-[Learn more about service connections](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
-
----
-
 #### 4️⃣ 🔐 Variable Groups
 
-Store your PAT tokens (from Prerequisite #2) in two Azure DevOps Variable Groups:
+Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups:
 
 **Variable Group #1:** `core-entauto-github-migration-secrets` (Stages 1-6)
 
@@ -338,19 +333,19 @@ Store your PAT tokens (from Prerequisite #2) in two Azure DevOps Variable Groups
 | `GH_PAT` | GitHub PAT #2 (boards scopes) | Stage 6 only |
 | `ADO_PAT` | Azure DevOps PAT (same as Group #1) | Stage 6 |
 
-> **Note:** Both variable groups must exist before running the pipeline. If you use different names, update the YAML file accordingly.
+> **Note:** Verify both variable groups are created and granted pipeline permissions. Modify the YAML file if variable group names differ.
 
 ---
 
 #### 5️⃣ 🧪 Demo Mode
 
-Test the migration process without post-migration stages (Validation, Rewiring, Boards Integration).
+Test the migration process without post-migration stages (Rewiring, Boards Integration).
 
 **Enable Demo Mode:**
 Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline run dialog.
 
 **Behavior:**
-- ✅ Runs Stages 1-3 (Prerequisites, Pre-migration Check, Migration)
+- ✅ Runs Stages 1-3 (Prerequisites, Pre-migration Check, Migration, post migration validation)
 - ❌ Skips Stages 4-6 (Validation, Rewiring, Boards Integration)
 
 > **⚠️ CRITICAL - Demo Mode Limitations:**
