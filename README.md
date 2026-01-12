@@ -162,7 +162,7 @@ gh migration monitor
 - Only YAML-based pipelines are supported
 - Classic pipelines (UI-defined) are NOT supported must be rewired manually. 
 
-#### 4️⃣ Repository Size Limits
+#### 4️⃣ Repository Migration Size Limits
 The [GitHub Enterprise Importer](https://github.com/github/gh-ado2gh) has the following size limits:
 
 | Item | Maximum Size |
