@@ -143,24 +143,11 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 - All branches and tags
 - Commit metadata (authors, dates, messages, SHAs)
 
-**NOT Migrated:**
-- Pull requests
-- Work items
-- Build/release history
-- Repository settings (branch policies, permissions, webhooks)
-- Wiki pages
-
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
-#### 2️⃣ Pipeline Timeout
+#### 2️⃣ Azure DevOps agent Timeout
 - It is recommended to run **Stage 3: Repository Migration** on self-hosted agents, where the job timeout can be set to 0, allowing long-running migrations to complete without interruption.
 - Additionally, the actual repository migration runs on GitHub’s backend services rather than on the Azure DevOps agent; the agent-side scripts simply poll the migration status at regular intervals (every 30–60 seconds).
-
-**Default Job Timeouts in Azure DevOps**:
-- **Free Tier, Private Projects**: 60 minutes per job
-- **Paid Parallel Jobs, Private Projects**: 360 minutes (6 hours) per job.
-- **Public Projects**: 360 minutes (6 hours) per job (up to 10 free parallel jobs).
-- **Self-Hosted Agents**: Jobs can run indefinitely when the timeout is set to 0, though you still need to manage the underlying infrastructure. 
 - **Track Long-Running Migrations:**
 If your pipeline times out, monitor migration progress using the GitHub CLI:
 
