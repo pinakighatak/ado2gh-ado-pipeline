@@ -329,17 +329,16 @@ Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups
 Test the migration process without post-migration stages (Rewiring, Boards Integration).
 
 **Enable Demo Mode:**
-Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline run dialog.
+Select the `Demo Mode: Run Migration + Validation Only` parameter when prompted in the Azure DevOps pipeline run dialog.
 
 **Behavior:**
-- ✅ Runs Stages 1-3 (Prerequisites, Pre-migration Check, Migration, post migration validation)
-- ❌ Skips Stages 4-6 (Validation, Rewiring, Boards Integration)
+- ✅ Runs Stages 1-4 (Prerequisites, Pre-migration Check, Repo Migration, Post Migration Validation)
+- ❌ Skips Stages 5-6 (Pipeline Rewiring and Boards Integration)
 
 > **⚠️ CRITICAL - Demo Mode Limitations:**
 > - Repositories **ARE migrated** to GitHub (NOT a dry-run simulation)
-> - Stages 4-6 are **skipped**
+> - Stages 5-6 are **skipped**
 > - **Rollback requires manual deletion** of migrated GitHub repositories
-> - **Only use non-production/test repositories**
 
 **Rollback (if needed):**
 ```bash
@@ -357,8 +356,6 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
 - ✅ Configured 2 Variable Groups in Azure DevOps
 - ✅ Set up GitHub service connection
 - ✅ Prepared CSV files in `bash/` directory
-
-> **💡 First-time user tip**: Run your first migration in [Demo Mode](#5--demo-mode) with 1-2 test repositories to familiarize yourself with the process.
 
 ---
 
@@ -417,11 +414,12 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    
    **For test/first runs:**
    - Check the box: "Demo Mode: Run Migration Only (Skip Stage 4-6)"
-   - `maxConcurrent`: **`1`** (migrate one repo at a time)
-   
-   **For production runs:**
-   - Uncheck "Demo Mode" (runs all 6 stages)
    - `maxConcurrent`: **`3-5`** (based on your needs)
+
+  **For Self-hosted agents:**
+   - Only **Stage 3: repo migration** stage runns on self-Hosted agent.
+   - Check the box: "Use Self-Hosted Agent for Migration Stage"
+   - provide the agent ppol name: "Self-Hosted Agent Pool Name (if enabled above)"
    
    Click **Run** to start the pipeline.
 
@@ -459,7 +457,7 @@ Select `runDemoRepoMigration: true` when prompted in the Azure DevOps pipeline r
    ```
    
    **Post-migration cleanup:**
-   - Disable ADO repository to prevent accidental commits (see [FAQ Q2](#q2-what-happens-to-the-ado-repository-after-migration))
+   - Disable ADO repository to prevent accidental commits.
    - Update team documentation with new GitHub repository URLs
    - Notify stakeholders of the migration
 
