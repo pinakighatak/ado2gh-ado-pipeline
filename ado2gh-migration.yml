@@ -2,23 +2,12 @@ trigger: none
 
 parameters:
 - name: runDemoRepoMigration
-  displayName: 'Demo Mode: Run Migration + Validation Only'
+  displayName: 'Repo migration & validation only'
   type: boolean
   default: false
 
-- name: maxConcurrent
-  displayName: 'Max Concurrent Migrations'
-  type: number
-  default: 3
-  values:
-  - 1
-  - 2
-  - 3
-  - 4
-  - 5
-
 - name: useSelfHostedAgent
-  displayName: 'Use Self-Hosted Agent for Migration Stage'
+  displayName: 'Use Self-Hosted Agent (applies to all stages)'
   type: boolean
   default: false
 
@@ -41,6 +30,9 @@ stages:
     jobs:
       - job: ValidatePrerequisites
         displayName: 'Check Prerequisites'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
           
@@ -221,6 +213,9 @@ stages:
     jobs:
       - job: ReadinessCheck
         displayName: 'Run Readiness Check Script'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
           
@@ -330,7 +325,7 @@ stages:
             inputs:
               targetType: 'filePath'
               filePath: 'bash/2_migration.sh'
-              arguments: '--csv bash/repos.csv --max-concurrent ${{ parameters.maxConcurrent }}'
+              arguments: '--csv bash/repos.csv'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               GH_TOKEN: $(GH_PAT)
@@ -366,6 +361,9 @@ stages:
     jobs:
       - job: ValidationCheck
         displayName: 'Run Validation Script'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
 
@@ -465,6 +463,9 @@ stages:
     jobs:
       - job: RewirePipelines
         displayName: 'Run Pipeline Rewiring'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
 
@@ -581,6 +582,9 @@ stages:
     jobs:
       - job: IntegrateBoards
         displayName: 'Integrate Azure Boards with GitHub'
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
         steps:
           - checkout: self
 

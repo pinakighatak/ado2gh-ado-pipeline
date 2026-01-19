@@ -10,14 +10,12 @@ set -o pipefail
 ############################################
 # CLI args
 ############################################
-MAX_CONCURRENT=3
+MAX_CONCURRENT=5  # Hardcoded to maximum safe concurrency
 CSV_PATH="repos.csv"
 OUTPUT_PATH=""   # empty -> timestamped file
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --max-concurrent)
-      MAX_CONCURRENT="$2"; shift 2;;
     --csv)
       CSV_PATH="$2"; shift 2;;
     --output)
@@ -32,18 +30,6 @@ done
 ############################################
 # Validate settings
 ############################################
-if [[ -z "${MAX_CONCURRENT}" || ! "${MAX_CONCURRENT}" =~ ^[0-9]+$ ]]; then
-  echo -e "\033[31m[ERROR] --max-concurrent must be an integer\033[0m"; exit 1
-fi
-if [[ "${MAX_CONCURRENT}" -gt 5 ]]; then
-  echo -e "\033[31m[ERROR] Maximum concurrent migrations (${MAX_CONCURRENT}) exceeds the allowed limit of 5.\033[0m"
-  echo -e "\033[31m[ERROR] Please set --max-concurrent to 5 or less.\033[0m"
-  exit 1
-fi
-if [[ "${MAX_CONCURRENT}" -lt 1 ]]; then
-  echo -e "\033[31m[ERROR] --max-concurrent must be at least 1.\033[0m"; exit 1
-fi
-
 # Normalize CRLF if present (Windows-generated CSV)
 sed -i 's/\r$//' "${CSV_PATH}" 2>/dev/null || true
 
@@ -265,7 +251,7 @@ for item in "${QUEUE[@]}"; do
   append_status_row "${org}" "${teamproject}" "${repo}" "${github_org}" "${github_repo}" "${gh_repo_visibility}" "Pending" ""
 done
 
-echo "[INFO] Starting migration with ${MAX_CONCURRENT} concurrent jobs..."
+echo "[INFO] Starting migration with ${MAX_CONCURRENT} concurrent jobs (hardcoded for optimal performance)..."
 echo "[INFO] Processing ${#QUEUE[@]} repositories from: ${CSV_PATH}"
 echo "[INFO] Initialized migration status output: ${OUTPUT_CSV_PATH}"
 
