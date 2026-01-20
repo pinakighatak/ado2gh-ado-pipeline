@@ -41,7 +41,7 @@ At enterprise scale, this pipeline overcomes the following challenges:
 > This section is provided for **conceptual understanding** of the pipeline flow.
 > Actual execution behavior is governed by the YAML implementation.
 
-This pipeline orchestrates a **six-stage sequential migration process** from Azure DevOps to GitHub Enterprise. Each stage runs on a **self-hosted Ubuntu agent** (`ubuntu-latest`).
+This pipeline orchestrates a **six-stage sequential migration process** from Azure DevOps to GitHub Enterprise. Each stage runs on a **Microsoft-hosted Ubuntu agent** (`ubuntu-latest`) by default. Enable the "Use Self-Hosted Agent" parameter to run on your own agent pool.
 
 ### Key Features
 
@@ -98,7 +98,7 @@ Each stage executes a specific script and generates detailed logs. Stages 4-6 au
 ### Stage 1️⃣: Prerequisite Validation
 Performs validation checks to:
 
-- Verify `bash/repos.csv` and `bash/pipeline.csv` exists.
+- Verify `bash/repos.csv` and `bash/pipelines.csv` exist.
 
 ### Stage 2️⃣: Pre-Migration Check
 Executes `1_pr_pipeline_check.sh` to:
@@ -439,9 +439,19 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    ```
    
    **Post-migration cleanup:**
-   - Disable ADO repository to prevent accidental commits.
-   - Update team documentation with new GitHub repository URLs
-   - Notify stakeholders of the migration
+   
+   After successful migration, disable ADO repositories to prevent accidental commits:
+
+   ```bash
+   # 1. Edit misc/disable_repo.csv with the repos you want to disable
+   #    CSV format: org,teamproject,repo
+   
+   # 2. Set ADO PAT and run the disable script
+   export ADO_PAT="your-ado-pat-token"
+   ./misc/6_disable_repo.sh --csv misc/disable_repo.csv
+   ```
+   
+   > **Note:** The `misc/` folder contains utility scripts for post-migration tasks. The disable script uses `gh ado2gh disable-ado-repo` to mark repositories as disabled in ADO.
 
 ---
 
@@ -574,18 +584,3 @@ SOFTWARE.
 ---
 
 **Made with ❤️ for the DevOps community**
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
