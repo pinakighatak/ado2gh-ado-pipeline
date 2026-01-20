@@ -341,7 +341,6 @@ while IFS= read -r line; do
     # Capture output and error from gh ado2gh rewire-pipeline
     OUTPUT_FILE=$(mktemp)
     ERROR_FILE=$(mktemp)
-    trap 'rm -f "$OUTPUT_FILE" "$ERROR_FILE"' EXIT
     
     # Show command being executed
     echo -e "${GRAY}      Running: gh ado2gh rewire-pipeline...${NC}"

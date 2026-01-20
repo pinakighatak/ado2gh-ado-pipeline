@@ -95,13 +95,6 @@ validate_prerequisites() {
         exit 1
     fi
     log_success "gh CLI is installed: $(gh --version | head -n 1)"
-    
-    # Validate CSV headers
-    if ! head -n 1 bash/repos.csv | grep -q "org.*teamproject.*github_org.*github_repo"; then
-        log_error "repos.csv missing required columns: org, teamproject, github_org, github_repo"
-        exit 1
-    fi
-    log_success "All required columns present in repos.csv"
 }
 
 ################################################################################

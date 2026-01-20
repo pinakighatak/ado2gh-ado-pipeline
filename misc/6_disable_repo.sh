@@ -4,7 +4,11 @@
 
 set -o pipefail
 
-CSV_PATH="disable_repo.csv"
+# Get the directory where this script resides
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Default CSV path is relative to script directory
+CSV_PATH="${SCRIPT_DIR}/disable_repo.csv"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do

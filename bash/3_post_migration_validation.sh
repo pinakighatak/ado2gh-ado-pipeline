@@ -34,9 +34,6 @@ validate_migration() {
 
     write_log "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Validating migration: $github_repo"
 
-    # --- GitHub repo info (optional) ---
-    gh repo view "$github_org/$github_repo" --json createdAt,diskUsage,defaultBranchRef,isPrivate > "validation-$github_repo.json" 2>/dev/null || true
-
     # --- GitHub branches ---
     local gh_branches
     gh_branches=$(gh api "/repos/$github_org/$github_repo/branches" --paginate 2>/dev/null) || {
