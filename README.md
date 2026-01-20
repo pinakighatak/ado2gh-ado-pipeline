@@ -438,7 +438,7 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    
    ```
    
-     **Post-migration cleanup:**
+  **Post-migration cleanup:**
    
    After successful migration, disable ADO repositories to prevent accidental commits:
 
