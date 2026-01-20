@@ -146,8 +146,9 @@ Executes `5_boards_integration.sh` (operates on successfully migrated repos only
 **Recommendation:** Complete or abandon all active pull requests before migrating.
 
 #### 2️⃣ Azure DevOps agent Timeout
-- It is recommended to run **Stage 3: Repository Migration** on self-hosted agents, where the job timeout can be set to 0, allowing long-running migrations to complete without interruption.
-- Additionally, the actual repository migration runs on GitHub’s backend services rather than on the Azure DevOps agent; the agent-side scripts simply poll the migration status at regular intervals (every 30–60 seconds).
+- It is recommended to run the YAML pipeline on self-hosted agents, where the job timeout can be set to 0, allowing long-running migrations to complete without interruption. In contrast, Azure DevOps hosted agents are limited to a maximum runtime of 60 minutes.
+- Additionally, the actual repository migration is executed on GitHub’s backend services, not on the Azure DevOps agent itself. The agent only runs lightweight scripts that poll the migration status at regular intervals (every 30–60 seconds).
+
 - **Track Long-Running Migrations:**
 If your pipeline times out, monitor migration progress using the GitHub CLI:
 
@@ -324,21 +325,13 @@ Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups
 
 ---
 
-#### 5️⃣ 🧪 Demo Mode
+#### 5️⃣ 🧪 Migration-Only mode
 
-Test the migration process without post-migration stages (Rewiring, Boards Integration).
-
-**Enable Demo Mode:**
-Select the `Demo Mode: Run Migration + Validation Only` parameter when prompted in the Azure DevOps pipeline run dialog.
+Enable the `Repo migration & validation only` parameter in the Azure DevOps pipeline run dialog if you want to skip post-migration steps such as pipeline rewiring and Azure Boards integration.
 
 **Behavior:**
 - ✅ Runs Stages 1-4 (Prerequisites, Pre-migration Check, Repo Migration, Post Migration Validation)
 - ❌ Skips Stages 5-6 (Pipeline Rewiring and Boards Integration)
-
-> **⚠️ CRITICAL - Demo Mode Limitations:**
-> - Repositories **ARE migrated** to GitHub (NOT a dry-run simulation)
-> - Stages 5-6 are **skipped**
-> - **Rollback requires manual deletion** of migrated GitHub repositories
 
 **Rollback (if needed):**
 ```bash
