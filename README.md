@@ -438,18 +438,16 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    
    ```
    
-   **Post-migration cleanup:**
+    **Post-migration cleanup:**
    
    After successful migration, disable ADO repositories to prevent accidental commits:
 
-   ```bash
-   # 1. Edit misc/disable_repo.csv with the repos you want to disable
+  1. Edit misc/disable_repo.csv with the repos you want to disable
    #    CSV format: org,teamproject,repo
    
-   # 2. Set ADO PAT and run the disable script
+  2. Set ADO PAT and run the disable script
    export ADO_PAT="your-ado-pat-token"
    ./misc/6_disable_repo.sh --csv misc/disable_repo.csv
-   ```
    
    > **Note:** The `misc/` folder contains utility scripts for post-migration tasks. The disable script uses `gh ado2gh disable-ado-repo` to mark repositories as disabled in ADO.
 
