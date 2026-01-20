@@ -7,7 +7,7 @@ parameters:
   default: false
 
 - name: useSelfHostedAgent
-  displayName: 'Use Self-Hosted Agent (applies to all stages)'
+  displayName: 'Use Self-Hosted Agent'
   type: boolean
   default: false
 
