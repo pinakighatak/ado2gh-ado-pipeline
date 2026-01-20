@@ -303,6 +303,8 @@ Create **3 PAT tokens** with the following scopes:
 
 </details>
 
+---
+
 #### 4️⃣ 🔐 Variable Groups
 
 Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups:
@@ -325,7 +327,7 @@ Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups
 
 ---
 
-#### 5️⃣ 🧪 Migration-Only mode
+#### 5️⃣ 🧪 Repo Migration-Only mode
 
 Enable the `Repo migration & validation only` parameter in the Azure DevOps pipeline run dialog if you want to skip post-migration steps such as pipeline rewiring and Azure Boards integration.
 
@@ -405,14 +407,13 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    
    In the "Run pipeline" dialog, configure:
    
-   **For test/first runs:**
-   - Check the box: "Demo Mode: Run Migration Only (Skip Stage 4-6)"
-   - `maxConcurrent`: **`3-5`** (based on your needs)
+   **For Repo Migration-Only mode:**
+   - Check the box: "Repo migration & validation only"
 
   **For Self-hosted agents:**
-   - Only **Stage 3: repo migration** stage runns on self-Hosted agent.
-   - Check the box: "Use Self-Hosted Agent for Migration Stage"
-   - provide the agent ppol name: "Self-Hosted Agent Pool Name (if enabled above)"
+   - migration pipeline runs on self-Hosted agent pool.
+   - Check the box: "Use Self-Hosted Agent"
+   - provide the agent pool name: "Self-Hosted Agent Pool Name (if enabled above)"
    
    Click **Run** to start the pipeline.
 
