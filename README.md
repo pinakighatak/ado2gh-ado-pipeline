@@ -110,7 +110,6 @@ Executes `1_pr_pipeline_check.sh` to:
 ### Stage 3️⃣: Repository Migration
 Executes `2_migration.sh` to:
 
-- Perform parallel migrations (configurable: 1-5 concurrent via `maxConcurrent` parameter)
 - Migrate repository content, branches, and commit history
 - Create `repos_with_status.csv` tracking `success/failure` for each repository
 - Publish artifact for downstream stages
@@ -196,17 +195,6 @@ _Covers: CSV configuration, PAT tokens, service connections, and variable groups
 https://github.com/user-attachments/assets/ff93c5de-ba12-45e4-834d-31d3c7d8ef5b
 
 _Covers: the pipeline design and how it works_
-
-<!-- 
-📝 HOW TO EMBED VIDEOS IN THIS README:
-1. Move your MP4 files to /media/ folder
-2. Commit and push to GitHub
-3. On GitHub.com, edit README.md in the web interface  
-4. Drag & drop the MP4 file into the editor
-5. GitHub uploads it and generates a URL like: https://github.com/.../assets/.../video.mp4
-6. Replace the markdown link with: <video src="GITHUB-URL" controls width="100%"></video>
-7. Delete the old file link and save
--->
 
 ---
 
@@ -365,7 +353,7 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
 
 #### 2️⃣ **Prepare CSV configuration files**
    ```bash
-   # Edit repos.csv - Add 1-3 test repositories for your first run
+   # Edit repos.csv - Add repositories for your first run
    code bash/repos.csv
    
    # Edit pipelines.csv - Optional for Demo Mode, required for production
@@ -413,7 +401,7 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
   **For Self-hosted agents:**
    - migration pipeline runs on self-Hosted agent pool.
    - Check the box: "Use Self-Hosted Agent"
-   - provide the agent pool name: "Self-Hosted Agent Pool Name (if enabled above)"
+   - provide the agent pool name: "Self-Hosted Agent Pool Name"
    
    Click **Run** to start the pipeline.
 
@@ -513,15 +501,6 @@ org,teamproject,repo,pipeline,url,serviceConnection,github_org,github_repo
 ### Q6: Does this pipeline migrate pull requests?
 
 **A:** No, **pull requests are NOT migrated**.
-
-**What Happens to PRs:**
-- ❌ Active PRs in ADO will NOT be transferred to GitHub
-- ⚠️ Stage 2 (Pre-migration Check) will **warn if active PRs exist**
-- ✅ You must **complete, merge, or abandon PRs** before migration
-
-**Recommendation:**
-- Complete all active PRs before migration
-- Or manually recreate PRs in GitHub after migration
 
 ### Q7: Can I migrate private ADO repos to public GitHub repos?
 
