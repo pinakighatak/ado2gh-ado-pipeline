@@ -6,6 +6,11 @@ parameters:
   type: boolean
   default: false
 
+- name: skipBoardsIntegration
+  displayName: 'Skip Azure Boards Integration (Stage 6)'
+  type: boolean
+  default: false
+
 - name: useSelfHostedAgent
   displayName: 'Use Self-Hosted Agent'
   type: boolean
@@ -579,6 +584,7 @@ stages:
     condition: |
       and(
         eq('${{ parameters.runDemoRepoMigration }}', false),
+        eq('${{ parameters.skipBoardsIntegration }}', false),
         in(dependencies.Migration.result, 'Succeeded', 'SucceededWithIssues')
       )
     # PAT Tokens Used: GH_PAT, ADO_PAT (from azure-boards-integration-secrets)
