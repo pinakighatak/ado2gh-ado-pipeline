@@ -94,21 +94,14 @@ stages:
 
           # Step 2 — Stage only the four generated inventory CSV files.
           - task: CopyFiles@2
-            displayName: "Stage inventory CSV files"
+            displayName: "Stage CSV files"
             inputs:
-              sourceFolder: "$(System.DefaultWorkingDirectory)"
               contents: |
-                orgs.csv
-                team-projects.csv
-                repos.csv
-                pipelines.csv
-              targetFolder: "$(Agent.TempDirectory)/inventory-csv"
-              cleanTargetFolder: true
-              overWrite: true
+                $(System.DefaultWorkingDirectory)/scripts/*.csv
+              targetFolder: "$(Build.artifactstagingdirectory)"
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Inventory Artifact"
             inputs:
-              pathToPublish: "$(Agent.TempDirectory)/inventory-csv"
+              targetPath: "$(Build.artifactstagingdirectory)"
               artifactName: "inventory-artifacts"
-              publishLocation: "pipeline"
