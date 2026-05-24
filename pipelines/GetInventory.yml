@@ -54,7 +54,7 @@ stages:
                   sudo apt-get update
 
                   Write-Host "Installing prerequisites..."
-                  sudo apt-get install -y curl ca-certificates gnupg lsb-release
+                  sudo apt install -y curl ca-certificates gnupg lsb-release
                 }
 
                 if ($needsAzureCli) {
@@ -74,8 +74,8 @@ stages:
                   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
                     sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 
-                  sudo apt-get update
-                  sudo apt-get install -y gh
+                  sudo apt update
+                  sudo apt install -y gh
                 }
                 else {
                   Write-Host "GitHub CLI already installed. Skipping installation."

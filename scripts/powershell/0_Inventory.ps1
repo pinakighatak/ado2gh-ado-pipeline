@@ -86,7 +86,7 @@ foreach ($override in $environmentOverrides) {
     }
 
     Set-Item -Path "Env:$($override.EnvironmentVariableName)" -Value $override.ParameterValue
-    Write-LogMessage -Message "$($override.EnvironmentVariableName) environment variable set from parameter override" -Level "Info"
+    Write-LogMessage -Message "$($override.EnvironmentVariableName) environment variable set: $($override.ParameterValue)" -Level "Info"
 }
 
 
@@ -136,7 +136,7 @@ Write-LogMessage -Message "Inventory Report Complete" -Level "Success"
 Write-LogMessage -Message "Output Files:" -Level "Info"
 Write-LogMessage -Message "- orgs.csv (ADO organizations)" -Level "Info"
 Write-LogMessage -Message "- team-projects.csv (Team projects)" -Level "Info"
-Write-LogMessage -Message "- repos.csv (Repositories - used by migration scripts)" -Level "Info"
-Write-LogMessage -Message "- pipelines.csv (Pipelines)" -Level "Info"
+Write-LogMessage -Message "- repos.csv" -Level "Info"
+Write-LogMessage -Message "- pipelines.csv" -Level "Info"
 
 Write-LogMessage -Message "These files are now uploaded to artifacts in Azure Pipelines" -Level "Success"

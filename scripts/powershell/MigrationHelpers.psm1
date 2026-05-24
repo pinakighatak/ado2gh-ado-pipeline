@@ -122,7 +122,7 @@ function Test-RequiredPATs {
     param(
         [bool]$ADORequired = $true,
         [bool]$GitHubRequired = $true,
-        [bool]$GitHubBoardsRequired = $false
+        [bool]$GitHubBoardsRequired = $true
     )
     
     $allValid = $true
