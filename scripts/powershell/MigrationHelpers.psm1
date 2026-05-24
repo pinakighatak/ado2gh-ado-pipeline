@@ -237,8 +237,8 @@ function Set-GitHubColumnsToReposCSV {
                 org                = $repo.org
                 teamproject        = $repo.teamproject
                 repo               = $repo.repo
-                github_org         = $repo.ghorg
-                github_repo        = $repo.ghrepo
+                github_org         = $githubOrg
+                github_repo        = $repo.repo
                 gh_repo_visibility = 'private'
             }
         }
