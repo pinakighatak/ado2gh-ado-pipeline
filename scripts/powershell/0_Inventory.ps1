@@ -119,7 +119,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-LogMessage -Message "Inventory report generated successfully!" -Level "Success"
 
 # Add GitHub organization columns to repos.csv and pipelines.csv
-Write-LogMessage -Message "[4/4] Adding GitHub organization columns to inventory CSV files..." -Level "Info"
+Write-LogMessage -Message "Adding GitHub organization columns to inventory CSV files..." -Level "Info"
 
 try {
     $repoCsvPath = Join-Path (Get-Location) "repos.csv"

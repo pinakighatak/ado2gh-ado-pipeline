@@ -97,7 +97,7 @@ stages:
             displayName: "Stage CSV files"
             inputs:
               contents: |
-                $(System.DefaultWorkingDirectory)/scripts/*.csv
+                $(System.DefaultWorkingDirectory)/scripts/powershell/*.csv
               targetFolder: "$(Build.artifactstagingdirectory)"
 
           - task: PublishPipelineArtifact@1

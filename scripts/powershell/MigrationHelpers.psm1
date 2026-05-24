@@ -218,16 +218,11 @@ function Set-GitHubColumnsToReposCSV {
             }
         }
 
-        # Read the GitHub organization from the environment
-        Write-LogMessage -Message "Reading GH_ORG from environment..." -Level "Info"
         $githubOrg = $env:GH_ORG
 
         if ([string]::IsNullOrWhiteSpace($githubOrg)) {
             throw "GH_ORG environment variable not set"
         }
-
-        Write-LogMessage -Message "GitHub Organization: $githubOrg" -Level "Info"
-
         # Read the repos CSV
         $repos = @(Import-Csv -Path $RepoCSVPath)
 
@@ -236,10 +231,7 @@ function Set-GitHubColumnsToReposCSV {
         }
 
         Write-LogMessage -Message "Processing $($repos.Count) repositories..." -Level "Info"
-
         # Build the output rows directly to avoid repeated object mutation.
-        
-        
         $outputRepos = foreach ($repo in $repos) {
             [pscustomobject]@{
                 org                = $repo.org
@@ -259,7 +251,6 @@ function Set-GitHubColumnsToReposCSV {
         # Export the updated CSV
         $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -UseQuotes AsNeeded -Force
         Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
-        Write-LogMessage -Message "Added github_org, github_repo, and gh_repo_visibility columns to repos.csv" -Level "Success"
         return $outputRepos
     }
     catch {
@@ -333,16 +324,12 @@ function Set-GitHubColumnsToPipelinesCSV {
                 throw "migration-config.json file not found at: $ConfigPath or $altConfig"
             }
         }
-
-        Write-LogMessage -Message "Reading GH_ORG from environment..." -Level "Info"
         $githubOrg = $env:GH_ORG
 
         if ([string]::IsNullOrWhiteSpace($githubOrg)) {
             throw "GH_ORG environment variable not set"
         }
 
-        Write-LogMessage -Message "GitHub Organization: $githubOrg" -Level "Info"
-        Write-LogMessage -Message "Pipelines CSV Path: $PipelinesCSVPath" -Level "Info"
         $pipelines = @(Import-Csv -Path $PipelinesCSVPath)
 
         # Check for at least one row in pipelines.csv
