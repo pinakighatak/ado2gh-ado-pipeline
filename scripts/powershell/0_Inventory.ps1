@@ -101,7 +101,8 @@ Write-LogMessage -Message "ADO Organization: $AdoOrg" -Level "Info"
 Write-LogMessage -Message "[3/4] Generating inventory report..." -Level "Info"
 Write-LogMessage -Message "This may take several minutes depending on organization size..." -Level "Info"
 
-Write-Output "Logging in to Azure DevOps..." | az devops login --organization $AdoOrg
+Write-LogMessage -Message "Logging in to Azure DevOps..." -Level "Info"
+$env:AZURE_DEVOPS_EXT_PAT | az devops login --organization $AdoOrg
 gh ado2gh inventory-report --ado-org $AdoOrg
 
 # Check command result
