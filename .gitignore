@@ -26,8 +26,8 @@ ULTRA_DEEP_CODE_ANALYSIS.md
 *_ANALYSIS.md
 *_SUMMARY.md
 orgs.csv
-repos.csv
-pipelines.csv
+#repos.csv
+#pipelines.csv
 team-projects.csv
 
 # OS and IDE files
