@@ -56,77 +56,104 @@ This pipeline orchestrates a **six-stage sequential migration process** from Azu
 ```mermaid
 ---
 config:
-  theme: neo
+  theme: base
   layout: dagre
-  look: handDrawn
+  themeVariables:
+    primaryTextColor: "#0F172A"
+    secondaryTextColor: "#1E293B"
+    tertiaryTextColor: "#334155"
+    lineColor: "#64748B"
+    primaryBorderColor: "#94A3B8"
+    clusterBkg: "#F8FAFC"
+    clusterBorder: "#CBD5E1"
+    fontFamily: "Segoe UI, Arial, sans-serif"
+
 ---
 flowchart TB
-    Start["<b>Start YAML Pipeline</b>"] --> Stage1["<b>Stage 1: Prereq validation</b><br>Verify repos.csv & pipeline.csv"]
-    Stage1 --> Stage2["<b>Stage 2: Pre-migration check</b><br>Check for active PR and pipelines"]
-    Stage2 --> Gate1["<b>User approval</b><br>Approval to trigger the next stage"]
-    Gate1 -- Approved --> Stage3["<b>Stage 3: Repository Migration</b><br>Migrate repositories with commit history and branches"]
-    Gate1 -- Rejected --> End1["<b>Pipeline Cancelled</b>"]
-    Stage3 --> Stage4["<b>Stage 4: Migration Validation</b><br>Compare ADO and GHE repositories by comparing branch, per-branch commit, and SHAs to confirm commit history integrity"]
-    Stage4 --> Stage5["<b>Stage 5: Pipeline Rewiring</b><br>Rewire Azure DevOps YAML pipelines to GitHub repositories using a service connection"]
-    Stage5 --> Stage6["<b>Stage 6: Boards Integration</b><br>Integrate boards<br>Enable <b>AB#</b> linking"]
-    Stage6 --> Success(["<b>Migration Complete ✓</b>"])
+   Start["<b>Start YAML Pipeline</b>"] --> Stage1["<b>Stage 1: Get Inventory</b></br>Generate repos.csv<br/>pipelines.csv"]
+   Stage1 --> Stage2["<b>Stage 2: Prereq Validation</b><br>Verify repos.csv and pipelines.csv"]
+   Stage2 --> Stage3["<b>Stage 3: Pre-migration Check</b><br>Check for active PRs and running pipelines"]
+   Stage3 --> Gate1["<b>User Approval</b><br>Approval to trigger the next stage"]
+   Gate1 -- Approved --> Stage4["<b>Stage 4: Repository Migration</b><br>Migrate repositories with commit history and branches"]
+   Gate1 -- Rejected --> End1["<b>Pipeline Cancelled</b>"]
+   Stage4 --> Stage5["<b>Stage 5: Migration Validation</b><br>Compare ADO and GitHub repositories by branch,<br>commit count, and latest SHA integrity"]
+   Stage5 --> Stage6["<b>Stage 6: Pipeline Rewiring</b><br>Rewire Azure DevOps YAML pipelines to GitHub repositories"]
+   Stage6 --> Stage7["<b>Stage 7: Boards Integration</b><br>Integrate Azure Boards and enable <b>AB#</b> linking"]
+   Stage7 --> Success(["<b>Migration Complete ✓</b>"])
     
-    Start@{ shape: tag-proc}
-    Stage1@{ shape: procs}
-    Stage2@{ shape: procs}
-    Gate1@{ shape: doc}
-    Stage3@{ shape: procs}
-    End1@{ shape: terminal}
-    Stage4@{ shape: procs}
-    Stage5@{ shape: procs}
-    Stage6@{ shape: procs}
-    style Stage1 fill:#e1f5ff,stroke-width:1px,stroke-dasharray: 0
-    style Stage2 fill:#e1f5ff
-    style Gate1 fill:#FFF9C4
-    style Stage3 fill:#e1f5ff
-    style End1 fill:#ffcccc
-    style Stage4 fill:#e1f5ff
-    style Stage5 fill:#e1f5ff
-    style Stage6 fill:#e1f5ff
-    style Success fill:#e1ffe1
-```
+   Start@{ shape: tag-proc}
+   Stage1@{ shape: procs}
+   Stage2@{ shape: procs}
+   Stage3@{ shape: procs}
+   Gate1@{ shape: doc}
+   End1@{ shape: terminal}
+   Stage4@{ shape: procs}
+   Stage5@{ shape: procs}
+   Stage6@{ shape: procs}
+   Stage7@{ shape: procs}
 
+   classDef kickoff fill:#E0F2FE,stroke:#0284C7,color:#0F172A,stroke-width:2.5px;
+   classDef inventory fill:#DBEAFE,stroke:#2563EB,color:#0F172A,stroke-width:2.5px;
+   classDef validation fill:#EDE9FE,stroke:#7C3AED,color:#0F172A,stroke-width:2.5px;
+   classDef gate fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2.5px;
+   classDef migration fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2.5px;
+   classDef rewire fill:#CFFAFE,stroke:#0891B2,color:#164E63,stroke-width:2.5px;
+   classDef boards fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2.5px;
+   classDef success fill:#DCFCE7,stroke:#22C55E,color:#14532D,stroke-width:2.5px;
+   classDef cancelled fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:2.5px;
+
+   class Start kickoff;
+   class Stage1 inventory;
+   class Stage2,Stage3 validation;
+   class Gate1 gate;
+   class Stage4,Stage5 migration;
+   class Stage6 rewire;
+   class Stage7 boards;
+   class Success success;
+   class End1 cancelled;
+
+```
 ### Stage Execution Details
 
 Each stage executes a specific script and generates detailed logs. Stages 4-6 automatically process only repositories that migrated successfully in Stage 3.
 
-### Stage 1️⃣: Prerequisite Validation
-Performs validation checks to:
+### Stage 1️⃣: Getting the inventory
+First and foremost, we need 2 files as inputs i.e. `pipelines.csv` and `repos.csv`. if you are running this pipeline for the first time, you can generate those csv fiels by running the `GetInventory` pipeline, you'd find here in this repo in the `/pipelines` folder.
 
+After this pipeline is run successfully, these csv files can be downloaded from the artifacts of the pipeline run. 
+
+### Stage 2️⃣: Prerequisite Validation
+The 2 files from stage 1 above, i.e. `repos.csv` and `pipelines.csv` should not be copies to your repo in the `/bash` folder.  
+This step then performs validation checks to:
 - Verify `bash/repos.csv` and `bash/pipelines.csv` exist.
 
-### Stage 2️⃣: Pre-Migration Check
+### Stage 3️⃣: Pre-Migration Check
 Executes `1_pr_pipeline_check.sh` to:
 
 - Detects active builds, release pipelines, and pull requests
 
 > **⚠️ IMPORTANT**: The pipeline pauses here for manual approval. Review the readiness report to ensure no active PRs or running pipelines exist before proceeding to Stage 3. Timeout: 3 days (auto-rejects if not approved).
 
-### Stage 3️⃣: Repository Migration
+### Stage 4️⃣: Repository Migration
 Executes `2_migration.sh` to:
 
 - Migrate repository content, branches, and commit history
 - Create `repos_with_status.csv` tracking `success/failure` for each repository
 - Publish artifact for downstream stages
 
-### Stage 4️⃣: Repository Migration Validation
+### Stage 5️⃣: Repository Migration Validation
 Executes `3_post_migration_validation.sh` (operates on successfully migrated repos only) to:
 
 - Compare branch counts between ADO and GitHub repositories
 - Verify commit counts match for each branch
 - Validate latest commit SHAs to ensure complete migration
 
-### Stage 5️⃣: Pipeline Rewiring
+### Stage 6️⃣: Pipeline Rewiring
 Executes `4_rewire_pipeline.sh` (operates on successfully migrated repos only) to:
 
 - Rewire Azure DevOps pipelines to point to GitHub repositories via service connection
 
-### Stage 6️⃣: Azure Boards Integration
+### Stage 7️⃣: Azure Boards Integration
 Executes `5_boards_integration.sh` (operates on successfully migrated repos only) to:
 
 - Integrate Azure Boards with migrated GitHub repositories
@@ -320,8 +347,8 @@ Store your PAT tokens (from Prerequisite #3) in two Azure DevOps Variable Groups
 Enable the `Repo migration & validation only` parameter in the Azure DevOps pipeline run dialog if you want to skip post-migration steps such as pipeline rewiring and Azure Boards integration.
 
 **Behavior:**
-- ✅ Runs Stages 1-4 (Prerequisites, Pre-migration Check, Repo Migration, Post Migration Validation)
-- ❌ Skips Stages 5-6 (Pipeline Rewiring and Boards Integration)
+- ✅ Runs Stages 1-5 (Prerequisites, Pre-migration Check, Repo Migration, Post Migration Validation)
+- ❌ Skips Stages 6-7 (Pipeline Rewiring and Boards Integration)
 
 **Rollback (if needed):**
 ```bash
@@ -338,7 +365,8 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
 - ✅ Created 3 PAT tokens (1 ADO, 2 GitHub)
 - ✅ Configured 2 Variable Groups in Azure DevOps
 - ✅ Set up GitHub service connection
-- ✅ Prepared CSV files in `bash/` directory
+- ✅ Run the GetInventory Pipeline to get the pipeline.csv and repos.csv files.
+- ✅ Downlload and add the CSV files in `bash/` directory
 
 ---
 
@@ -409,13 +437,14 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    
    | Stage | Key Actions | Expected Outcome |
    |-------|-------------|------------------|
-   | **Stage 1: Prerequisite Validation** | View logs to verify CSV validation | ✅ "X repositories found" message |
-   | **Stage 2: Pre-migration Check** | Download `readiness-logs` artifact | ✅ No active PRs or running pipelines |
+   | **Stage 1: Get Inventory** | Run the pipeline and dowload the artifacts | ✅ `repos.csv` and `pipelines.csv` available |
+   | **Stage 2: Prerequisite Validation** | View logs to verify CSV validation | ✅ "X repositories found" message |
+   | **Stage 3: Pre-migration Check** | Download `readiness-logs` artifact | ✅ No active PRs or running pipelines |
    | **🔒 Manual Approval Gate** | Review readiness report, then **APPROVE** or **REJECT** | ✅ Approval granted (timeout: 3 days) |
-   | **Stage 3: Repository Migration** | Monitor logs, check `repos_with_status.csv` artifact | ✅ Migration completes (success/partial) |
-   | **Stage 4: Migration Validation** | Download `validation-logs`, check ✅/❌ indicators | ✅ Branch counts, commits, SHAs match |
-   | **Stage 5: Pipeline Rewiring** | Download `rewiring-logs`, verify GitHub connection | ✅ Pipelines point to GitHub repos |
-   | **Stage 6: Boards Integration** | Download `boards-integration-logs`, test AB#123 | ✅ Work item linking active |
+   | **Stage 4: Repository Migration** | Monitor logs, check `repos_with_status.csv` artifact | ✅ Migration completes (success/partial) |
+   | **Stage 5: Migration Validation** | Download `validation-logs`, check ✅/❌ indicators | ✅ Branch counts, commits, SHAs match |
+   | **Stage 6: Pipeline Rewiring** | Download `rewiring-logs`, verify GitHub connection | ✅ Pipelines point to GitHub repos |
+   | **Stage 7: Boards Integration** | Download `boards-integration-logs`, test AB#123 | ✅ Work item linking active |
 
 #### 7️⃣ **Verify migration success**
    
@@ -557,7 +586,7 @@ Please submit a PR or open an issue.
 
 MIT License
 
-Copyright (c) 2025 Vamsi Cherukuri (<vamsicherukuri@hotmail.com>)
+Copyright (c) 2026 Vamsi Cherukuri (<vamsicherukuri@hotmail.com>)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
