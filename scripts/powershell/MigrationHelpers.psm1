@@ -435,7 +435,7 @@ function Set-GitHubColumnsToReposCSV {
         }
 
         # Keep only the migration columns in the saved CSV.
-        $outputRepos = $updatedRepos | Select-Object -Property org,teamproject,repo,ghorg,ghrepo,ghrepo_visibility
+        $outputRepos = $updatedRepos | Select-Object -Property org, teamproject, repo, ghorg, ghrepo, ghrepo_visibility
 
         # Export the updated CSV
         $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -Force
@@ -548,7 +548,7 @@ function Set-GitHubColumnsToPipelinesCSV {
             $OutputPath = $PipelinesCSVPath
         }
 
-        $outputPipelines = $updatedPipelines | Select-Object -Property org,teamproject,repo,pipeline,serviceConnection,ghorg,ghrepo
+        $outputPipelines = $updatedPipelines | Select-Object -Property org, teamproject, repo, pipeline, serviceConnection, ghorg, ghrepo
 
         $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
         Write-LogMessage -Message "Output written to: $OutputPath"
@@ -630,6 +630,7 @@ function Set-EnvVarsSwap {
 # ========================================
 
 Export-ModuleMember -Function @(
+    'Write-LogMessage',    
     'Test-RequiredPATs',
     'Get-MigrationConfig',
     'Get-LatestStateFile',
