@@ -44,3 +44,6 @@ Thumbs.db
 *.temp
 tmp/
 temp/
+
+# Ignore all the files created in the process of migration
+*.log
