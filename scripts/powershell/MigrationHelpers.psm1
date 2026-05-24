@@ -239,12 +239,12 @@ function Set-GitHubColumnsToReposCSV {
         # Build the output rows directly to avoid repeated object mutation.
         $outputRepos = foreach ($repo in $repos) {
             [pscustomobject]@{
-                org               = $repo.org
-                teamproject       = $repo.teamproject
-                repo              = $repo.repo
-                ghorg             = $githubOrg
-                ghrepo            = $repo.repo
-                ghrepo_visibility = 'private'
+                org                = $repo.org
+                teamproject        = $repo.teamproject
+                repo               = $repo.repo
+                github_org         = $githubOrg
+                github_repo        = $repo.repo
+                gh_repo_visibility = 'private'
             }
         }
 
@@ -256,11 +256,7 @@ function Set-GitHubColumnsToReposCSV {
         # Export the updated CSV
         $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -Force
         Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
-        Write-LogMessage -Message "Added ghorg, ghrepo, and ghrepo_visibility columns to repos.csv" -Level Success
-        Write-LogMessage -Message "Default mapping applied:"
-        Write-LogMessage -Message "ghorg: $githubOrg (from GH_ORG environment variable)"
-        Write-LogMessage -Message "ghrepo: Same as ADO repository name"
-        Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with the migration." -Level Info
+        Write-LogMessage -Message "Restructured columns to repos.csv" -Level Success
         return $outputRepos
     }
     catch {
@@ -361,9 +357,10 @@ function Set-GitHubColumnsToPipelinesCSV {
                     teamproject       = $pipeline.teamproject
                     repo              = $pipeline.repo
                     pipeline          = $pipeline.pipeline
+                    url               = $pipeline.url
                     serviceConnection = $pipeline.serviceConnection
-                    ghorg             = $githubOrg
-                    ghrepo            = $pipeline.repo
+                    github_org        = $githubOrg
+                    github_repo       = $pipeline.repo
                 }
             }
             if ([string]::IsNullOrWhiteSpace($OutputPath)) {
@@ -371,9 +368,6 @@ function Set-GitHubColumnsToPipelinesCSV {
             }
             $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
             Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
-            Write-LogMessage -Message "Added serviceConnection, ghorg, and ghrepo columns to pipelines.csv" -Level "Success"
-            Write-LogMessage -Message "ghorg: $githubOrg (from GH_ORG environment variable)" -Level "Info"
-            Write-LogMessage -Message "ghrepo: Same as ADO repository name" -Level "Info"
             Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with pipeline rewiring." -Level "Info"
             return $outputPipelines
         }

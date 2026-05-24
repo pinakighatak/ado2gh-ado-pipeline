@@ -36,7 +36,7 @@ stages:
             name: ${{ parameters.selfHostedAgentPool }}
 
         steps:
-          - checkout: self
+          #- checkout: self
           # Step 1 — Install GitHub CLI, ado2gh extension, and Azure DevOps CLI
           - task: PowerShell@2
             displayName: Install CLI and extensions
@@ -114,11 +114,11 @@ stages:
               sourceFolder: "$(System.DefaultWorkingDirectory)"
               contents: |
                 *.csv
-              targetFolder: "$(Build.ArtifactStagingDirectory)"
+              targetFolder: "$(Pipeline.Workspace)/inventory-artifacts"
 
-          - task: PublishBuildArtifacts@1
-            displayName: "Publish Artifacts"
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Pipeline Artifact"
             inputs:
-              pathToPublish: $(Build.ArtifactStagingDirectory)
+              pathToPublish: "$(Pipeline.Workspace)/inventory-artifacts"
               artifactName: "inventory-artifacts"
-              publishLocation: "Container"
+              publishLocation: "pipeline"
