@@ -448,7 +448,7 @@ function Set-GitHubColumnsToReposCSV {
         return $outputRepos
     }
     catch {
-        Write-LogMessage -Message "Failed to update repos.csv: $_" -Level Error
+        Write-LogMessage -Message "Failed to update repos.csv: $_" -Level "Error"
         throw
     }
 }
@@ -500,7 +500,7 @@ function Set-GitHubColumnsToPipelinesCSV {
         if (-not (Test-Path $PipelinesCSVPath)) {
             $altPipelines = Join-Path (Get-Location) (Split-Path $PipelinesCSVPath -Leaf)
             if (Test-Path $altPipelines) {
-                Write-Host "   pipelines.csv not found at default; using $altPipelines" -ForegroundColor DarkYellow
+                Write-LogMessage -Message "pipelines.csv not found at default; using $altPipelines" -Level "Warning"
                 $PipelinesCSVPath = $altPipelines
             }
             else {
@@ -511,7 +511,7 @@ function Set-GitHubColumnsToPipelinesCSV {
         if (-not (Test-Path $ConfigPath)) {
             $altConfig = Join-Path (Get-Location) (Split-Path $ConfigPath -Leaf)
             if (Test-Path $altConfig) {
-                Write-Host "   migration-config.json not found at default; using $altConfig" -ForegroundColor DarkYellow
+                Write-LogMessage -Message "migration-config.json not found at default; using $altConfig" -Level "Warning"
                 $ConfigPath = $altConfig
             }
             else {
@@ -519,7 +519,7 @@ function Set-GitHubColumnsToPipelinesCSV {
             }
         }
 
-        Write-Host "   Reading migration configuration..." -ForegroundColor Gray
+        Write-LogMessage -Message "Reading migration configuration..." -Level "Info"
         $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
         $githubOrg = $config.githubOrganization
 
@@ -527,40 +527,40 @@ function Set-GitHubColumnsToPipelinesCSV {
             throw "GitHub organization not found in migration-config.json"
         }
 
-        Write-Host "   GitHub Organization: $githubOrg" -ForegroundColor Gray
-        Write-Host "   Pipelines CSV Path: $PipelinesCSVPath" -ForegroundColor Gray
-        $pipelines = Import-Csv -Path $PipelinesCSVPath
+        Write-LogMessage -Message "GitHub Organization: $githubOrg" -Level "Info"
+        Write-LogMessage -Message "Pipelines CSV Path: $PipelinesCSVPath" -Level "Info"
+        $pipelines = @(Import-Csv -Path $PipelinesCSVPath)
 
-        if ($pipelines.Count -eq 0) {
-            throw "No pipelines found in pipelines.csv"
+        # Check for at least one row in pipelines.csv
+
+        if ($pipelines.Count -le 1) {
+            Write-LogMessage -Message "No pipelines found in pipelines.csv" -Level "Warning"
+            return @()
         }
-
-        Write-Host "   Processing $($pipelines.Count) pipelines..." -ForegroundColor Gray
-
-        $updatedPipelines = $pipelines | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name "serviceConnection" -Value $_.serviceConnection -Force
-            $_ | Add-Member -MemberType NoteProperty -Name "ghorg" -Value $githubOrg -Force
-            $_ | Add-Member -MemberType NoteProperty -Name "ghrepo" -Value $_.repo -Force
-            $_
+        else {
+            Write-LogMessage -Message "Found $($pipelines.Count) pipelines in pipelines.csv" -Level "Info"
+            Write-LogMessage -Message "Processing $($pipelines.Count) pipelines..." -Level "Info"
+            $updatedPipelines = $pipelines | ForEach-Object {
+                $_ | Add-Member -MemberType NoteProperty -Name "serviceConnection" -Value $_.serviceConnection -Force
+                $_ | Add-Member -MemberType NoteProperty -Name "ghorg" -Value $githubOrg -Force
+                $_ | Add-Member -MemberType NoteProperty -Name "ghrepo" -Value $_.repo -Force
+                $_
+            }
+            if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+                $OutputPath = $PipelinesCSVPath
+            }
+            $outputPipelines = $updatedPipelines | Select-Object -Property org, teamproject, repo, pipeline, serviceConnection, ghorg, ghrepo
+            $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
+            Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
+            Write-LogMessage -Message "Added serviceConnection, ghorg, and ghrepo columns to pipelines.csv" -Level "Success"
+            Write-LogMessage -Message "ghorg: $githubOrg (from migration-config.json)" -Level "Info"
+            Write-LogMessage -Message "ghrepo: Same as ADO repository name" -Level "Info"
+            Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with pipeline rewiring." -Level "Info"
+            return $outputPipelines
         }
-
-        if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-            $OutputPath = $PipelinesCSVPath
-        }
-
-        $outputPipelines = $updatedPipelines | Select-Object -Property org, teamproject, repo, pipeline, serviceConnection, ghorg, ghrepo
-
-        $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
-        Write-LogMessage -Message "Output written to: $OutputPath"
-        Write-LogMessage -Message "Added serviceConnection, ghorg, and ghrepo columns to pipelines.csv" -Level Success
-        Write-LogMessage -Message "ghorg: $githubOrg (from migration-config.json)"
-        Write-LogMessage -Message "ghrepo: Same as ADO repository name"
-        Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with pipeline rewiring." -Level Info
-        return $outputPipelines
     }
     catch {
-        Write-LogMessage -Message "Failed to update pipelines.csv: $_" -Level Error
-        throw
+        Write-LogMessage -Message "Failed to update pipelines.csv: $_" -Level "Error"
     }
 }
 
@@ -602,24 +602,15 @@ function Set-EnvVarsSwap {
         $FirstValue = $SecondValue
         $SecondValue = $temp
 
-        # Validate string lengths
-        if ($FirstValue.Length -ne 40 -or $SecondValue.Length -ne 40) {
-            throw "Environment variable values must be exactly 40 characters"
-        }
-
         # Assign to environment variables both ways
         $env:GH_PAT = $FirstValue
         $env:GH_BoardsPAT = $SecondValue
         [Environment]::SetEnvironmentVariable('GH_PAT', $FirstValue, 'Process')
         [Environment]::SetEnvironmentVariable('GH_BoardsPAT', $SecondValue, 'Process')
 
-        # Verify the values were set correctly
-        if ($env:GH_PAT.Length -ne 40 -or $env:GH_BoardsPAT.Length -ne 40) {
-            throw "Failed to set environment variables with correct lengths (40 characters required)"
-        }
     }
     catch {
-        Write-Host "❌ Failed to swap environment variables: $_" -ForegroundColor Red
+        Write-LogMessage -Message "Failed to swap environment variables: $_" -Level "Error"
         throw
     }
 }

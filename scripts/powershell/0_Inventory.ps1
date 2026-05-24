@@ -121,8 +121,8 @@ else {
 Write-LogMessage -Message "[3/4] Generating inventory report..." -Level "Info"
 Write-LogMessage -Message "This may take several minutes depending on organization size..." -Level "Info"
 
-Write-LogMessage -Message "Logging in to Azure DevOps..." -Level "Info"
-$env:AZURE_DEVOPS_EXT_PAT | az devops login --organization https://dev.azure.com/$AdoOrg
+# Write-LogMessage -Message "Logging in to Azure DevOps..." -Level "Info"
+# $env:AZURE_DEVOPS_EXT_PAT | az devops login --organization https://dev.azure.com/$AdoOrg
 gh ado2gh inventory-report --ado-org $AdoOrg
 
 # Check command result
