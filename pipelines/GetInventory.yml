@@ -107,18 +107,19 @@ stages:
               pwsh: true
               failOnStderr: true
 
-          # Step 2 — Collect outputs (logs + csv) into staging folder
+          # Step 2 — Collect only the CSV files generated in the script working directory.
           - task: CopyFiles@2
-            displayName: "Get CSV files"
+            displayName: "Stage inventory CSV files"
             inputs:
               sourceFolder: "$(System.DefaultWorkingDirectory)"
-              contents: |
-                *.csv
-              targetFolder: "$(Pipeline.Workspace)/inventory-artifacts"
+              contents: "*.csv"
+              targetFolder: "$(Build.ArtifactStagingDirectory)"
+              cleanTargetFolder: true
+              overWrite: true
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Pipeline Artifact"
             inputs:
-              pathToPublish: "$(Pipeline.Workspace)/inventory-artifacts"
+              pathToPublish: "$(Build.ArtifactStagingDirectory)"
               artifactName: "inventory-artifacts"
               publishLocation: "pipeline"
