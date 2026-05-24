@@ -29,9 +29,30 @@
 # Usage: Import-Module "$scriptPath\MigrationHelpers.psm1" -Force
 
 # ========================================
-# 1. PAT Token(s) Validation
+# PAT Token(s) Validation
 # ========================================
 
+<#
+.SYNOPSIS
+    Writes standardized log output for local execution and Azure Pipelines.
+
+.DESCRIPTION
+    Centralizes logging behavior used by the migration scripts. When running inside
+    Azure Pipelines, warning and error messages are also emitted using Azure DevOps
+    logging commands so they are surfaced correctly in pipeline logs.
+
+.PARAMETER Message
+    The message text to write.
+
+.PARAMETER Level
+    The severity for the message. Defaults to Info.
+
+.EXAMPLE
+    Write-LogMessage -Message "Configuration loaded successfully" -Level Success
+
+.EXAMPLE
+    Write-LogMessage -Message "GH_PAT environment variable not set" -Level Error
+#>
 function Write-LogMessage {
     [CmdletBinding()]
     param(
@@ -88,18 +109,20 @@ function Write-LogMessage {
     Whether GitHub PAT is required. Default is $true.
 
 .PARAMETER GitHubBoardsRequired
-    Whether GitHub Boards PAT is required. Default is $true.
+    Whether GitHub Boards PAT is required. Default is $false.
 
 .EXAMPLE
     if (!(Test-RequiredPATs)) { exit 1 }
 
 .EXAMPLE
-    if (!(Test-RequiredPATs -ADORequired $false)) { exit 1 }  # Only GitHub PAT needed
+    if (!(Test-RequiredPATs -ADORequired $false -GitHubBoardsRequired $true)) { exit 1 }
 #>
 function Test-RequiredPATs {
+    [CmdletBinding()]
     param(
         [bool]$ADORequired = $true,
-        [bool]$GitHubRequired = $true
+        [bool]$GitHubRequired = $true,
+        [bool]$GitHubBoardsRequired = $false
     )
     
     $allValid = $true
@@ -129,214 +152,7 @@ function Test-RequiredPATs {
 }
 
 # ========================================
-# 2. Configuration File Loading
-# ========================================
-
-<#
-.SYNOPSIS
-    Loads and parses the migration configuration JSON file.
-
-.DESCRIPTION
-    Reads the migration-config.json file, parses it, and returns the configuration object.
-    Provides consistent error handling and messaging across all scripts.
-
-.PARAMETER ConfigPath
-    Path to the configuration JSON file. Default is "migration-config.json".
-
-.EXAMPLE
-    $config = Get-MigrationConfig -ConfigPath $ConfigPath
-    if (!$config) { exit 1 }
-
-.EXAMPLE
-    $config = Get-MigrationConfig
-    $adoOrg = $config.adoOrganization
-#>
-function Get-MigrationConfig {
-    param(
-        [string]$ConfigPath = "migration-config.json"
-    )
-    
-    if (-not (Test-Path $ConfigPath)) {
-        Write-LogMessage -Message "Configuration file not found: $ConfigPath" -Level "Error"
-        return $null
-    }
-    
-    try {
-        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
-        Write-LogMessage -Message "Configuration loaded successfully" -Level "Success"
-        return $config
-    }
-    catch {
-        Write-LogMessage -Message "Failed to load configuration: $($_.Exception.Message)" -Level "Error"
-        return $null
-    }
-}
-
-# ========================================
-# 3. State File Discovery
-# ========================================
-
-<#
-.SYNOPSIS
-    Finds the most recent migration state file or validates a specified file.
-
-.DESCRIPTION
-    Auto-discovers the latest migration state file when not specified or when set to "auto".
-    Provides consistent state file handling across validation, rewiring, and disable scripts.
-
-.PARAMETER StateFile
-    Path to a specific state file, or "auto" to discover latest, or empty to discover.
-
-.PARAMETER Pattern
-    File pattern to search for. Default is "migration-state-*.json".
-
-.EXAMPLE
-    $StateFile = Get-LatestStateFile -StateFile $StateFile
-    if (!$StateFile) { exit 1 }
-
-.EXAMPLE
-    $StateFile = Get-LatestStateFile -StateFile "" -Pattern "migration-state-comprehensive-*.json"
-#>
-function Get-LatestStateFile {
-    param(
-        [string]$StateFile = "",
-        [string]$Pattern = "migration-state-*.json"
-    )
-    
-    # If a specific file is provided and it's not "auto", validate and return it
-    if (![string]::IsNullOrEmpty($StateFile) -and $StateFile -ne "auto") {
-        if (Test-Path $StateFile) {
-            return $StateFile
-        }
-        else {
-            Write-LogMessage -Message "Specified state file not found: $StateFile" -Level "Error"
-            return $null
-        }
-    }
-    
-    # Auto-discover the most recent state file
-    $stateFiles = Get-ChildItem -Path "." -Filter $Pattern -ErrorAction SilentlyContinue | 
-    Sort-Object LastWriteTime -Descending
-    
-    if ($stateFiles.Count -eq 0) {
-        Write-LogMessage -Message "No migration state files found matching pattern: $Pattern" -Level "Error"
-        Write-LogMessage -Message "Please run 2_migrate_repo.ps1 first or specify -StateFile parameter" -Level "Warning"
-        return $null
-    }
-    
-    $discoveredFile = $stateFiles[0].Name
-    Write-LogMessage -Message "Auto-discovered state file: $discoveredFile" -Level "Info"
-    
-    return $discoveredFile
-}
-
-# ========================================
-# 4. Service Connection Queries
-# ========================================
-
-<#
-.SYNOPSIS
-    Queries Azure DevOps service connections (endpoints) for a project.
-
-.DESCRIPTION
-    Retrieves GitHub/GitHub Enterprise service connections from an ADO project.
-    Provides consistent service connection querying for pipeline rewiring and boards integration.
-
-.PARAMETER AdoOrg
-    Azure DevOps organization name.
-
-.PARAMETER ProjectName
-    Azure DevOps project name.
-
-.PARAMETER ConnectionTypes
-    Array of connection types to filter. Default is @('github', 'githubenterprise').
-
-.EXAMPLE
-    $connections = Get-ProjectServiceConnections -AdoOrg $ADO_ORG -ProjectName $projectName
-    if ($connections -and $connections.Count -gt 0) { ... }
-
-.EXAMPLE
-    $connections = Get-ProjectServiceConnections -AdoOrg $org -ProjectName $proj -ConnectionTypes @('github')
-#>
-function Get-ProjectServiceConnections {
-    param(
-        [Parameter(Mandatory)]
-        [string]$AdoOrg,
-        
-        [Parameter(Mandatory)]
-        [string]$ProjectName,
-        
-        [string[]]$ConnectionTypes = @('github', 'githubenterprise')
-    )
-    
-    try {
-        # Build the type filter for the query
-        $typeFilter = ($ConnectionTypes | ForEach-Object { "type=='$_'" }) -join ' || '
-        
-        $connections = az devops service-endpoint list `
-            --org "https://dev.azure.com/$AdoOrg" `
-            --project "$ProjectName" `
-            --query "[?$($typeFilter)].{name:name, id:id, type:type, isReady:isReady, url:url}" `
-            -o json 2>$null | ConvertFrom-Json
-        
-        return $connections
-    }
-    catch {
-        Write-LogMessage -Message "Failed to query service connections for project '$ProjectName': $($_.Exception.Message)" -Level "Error"
-        return $null
-    }
-}
-
-# ========================================
-# 5. Repository Mapping
-# ========================================
-
-<#
-.SYNOPSIS
-    Creates a standardized repository mapping from ADO to GitHub.
-
-.DESCRIPTION
-    Builds a hashtable mapping ADO repositories to GitHub repositories using a consistent structure.
-    Key format: "TeamProject|RepositoryName"
-
-.PARAMETER Repositories
-    Array of repository objects with ADO and GitHub properties.
-
-.EXAMPLE
-    $mapping = New-RepositoryMapping -Repositories $REPOSITORIES
-    $githubRepo = $mapping["MyProject|MyRepo"].GitHubRepo
-
-.EXAMPLE
-    $mapping = New-RepositoryMapping -Repositories $migrationState.MigratedRepositories
-    foreach ($key in $mapping.Keys) {
-        Write-Host "$key -> $($mapping[$key].GitHubRepo)"
-    }
-#>
-function New-RepositoryMapping {
-    param(
-        [Parameter(Mandatory)]
-        [object[]]$Repositories
-    )
-    
-    $mapping = @{}
-    
-    foreach ($repo in $Repositories) {
-        $key = "$($repo.AdoTeamProject)|$($repo.AdoRepository)"
-        
-        $mapping[$key] = @{
-            AdoOrganization    = $repo.AdoOrganization
-            AdoTeamProject     = $repo.AdoTeamProject
-            AdoRepository      = $repo.AdoRepository
-            GitHubOrganization = $repo.GitHubOrganization
-            GitHubRepository   = $repo.GitHubRepository
-        }
-    }
-    
-    return $mapping
-}
-
-# ========================================
-# 6. GitHub Columns Augmentation
+# GitHub Columns Augmentation
 # ========================================
 
 <#
@@ -345,7 +161,7 @@ function New-RepositoryMapping {
 
 .DESCRIPTION
     Reads the repos.csv file and adds two new columns:
-    - ghorg: The GitHub organization from migration-config.json
+    - ghorg: The GitHub organization from the GH_ORG environment variable
     - ghrepo: The repository name (same as the repo column value)
     Provides fallback path resolution if files are not found in the script directory.
 
@@ -401,19 +217,18 @@ function Set-GitHubColumnsToReposCSV {
             }
         }
 
-        # Read the migration config to get GitHub organization
-        Write-LogMessage -Message "Reading migration configuration..." -Level "Info"
-        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
-        $githubOrg = $config.githubOrganization
+        # Read the GitHub organization from the environment
+        Write-LogMessage -Message "Reading GH_ORG from environment..." -Level "Info"
+        $githubOrg = $env:GH_ORG
 
         if ([string]::IsNullOrWhiteSpace($githubOrg)) {
-            throw "GitHub organization not found in migration-config.json"
+            throw "GH_ORG environment variable not set"
         }
 
         Write-LogMessage -Message "GitHub Organization: $githubOrg" -Level "Info"
 
         # Read the repos CSV
-        $repos = Import-Csv -Path $RepoCSVPath
+        $repos = @(Import-Csv -Path $RepoCSVPath)
 
         if ($repos.Count -eq 0) {
             throw "No repositories found in repos.csv"
@@ -421,12 +236,16 @@ function Set-GitHubColumnsToReposCSV {
 
         Write-LogMessage -Message "Processing $($repos.Count) repositories..." -Level "Info"
 
-        # Add the new columns
-        $updatedRepos = $repos | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name "ghorg" -Value $githubOrg -Force
-            $_ | Add-Member -MemberType NoteProperty -Name "ghrepo" -Value $_.repo -Force
-            $_ | Add-Member -MemberType NoteProperty -Name "ghrepo_visibility" -Value "private" -Force
-            $_
+        # Build the output rows directly to avoid repeated object mutation.
+        $outputRepos = foreach ($repo in $repos) {
+            [pscustomobject]@{
+                org               = $repo.org
+                teamproject       = $repo.teamproject
+                repo              = $repo.repo
+                ghorg             = $githubOrg
+                ghrepo            = $repo.repo
+                ghrepo_visibility = 'private'
+            }
         }
 
         # Determine output path
@@ -434,15 +253,12 @@ function Set-GitHubColumnsToReposCSV {
             $OutputPath = $RepoCSVPath
         }
 
-        # Keep only the migration columns in the saved CSV.
-        $outputRepos = $updatedRepos | Select-Object -Property org, teamproject, repo, ghorg, ghrepo, ghrepo_visibility
-
         # Export the updated CSV
         $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -Force
         Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
         Write-LogMessage -Message "Added ghorg, ghrepo, and ghrepo_visibility columns to repos.csv" -Level Success
         Write-LogMessage -Message "Default mapping applied:"
-        Write-LogMessage -Message "ghorg: $githubOrg (from migration-config.json)"
+        Write-LogMessage -Message "ghorg: $githubOrg (from GH_ORG environment variable)"
         Write-LogMessage -Message "ghrepo: Same as ADO repository name"
         Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with the migration." -Level Info
         return $outputRepos
@@ -454,7 +270,7 @@ function Set-GitHubColumnsToReposCSV {
 }
 
 # ========================================
-# 7. GitHub Columns Augmentation For Pipelines
+# GitHub Columns Augmentation For Pipelines
 # ========================================
 
 <#
@@ -464,7 +280,7 @@ function Set-GitHubColumnsToReposCSV {
 .DESCRIPTION
     Reads the pipelines.csv file and ensures it contains the pipeline migration columns:
     - serviceConnection: Existing Azure DevOps service connection identifier
-    - ghorg: The GitHub organization from migration-config.json
+    - ghorg: The GitHub organization from the GH_ORG environment variable
     - ghrepo: The repository name (same as the repo column value)
     Provides fallback path resolution if files are not found in the script directory.
 
@@ -519,12 +335,11 @@ function Set-GitHubColumnsToPipelinesCSV {
             }
         }
 
-        Write-LogMessage -Message "Reading migration configuration..." -Level "Info"
-        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
-        $githubOrg = $config.githubOrganization
+        Write-LogMessage -Message "Reading GH_ORG from environment..." -Level "Info"
+        $githubOrg = $env:GH_ORG
 
         if ([string]::IsNullOrWhiteSpace($githubOrg)) {
-            throw "GitHub organization not found in migration-config.json"
+            throw "GH_ORG environment variable not set"
         }
 
         Write-LogMessage -Message "GitHub Organization: $githubOrg" -Level "Info"
@@ -533,27 +348,31 @@ function Set-GitHubColumnsToPipelinesCSV {
 
         # Check for at least one row in pipelines.csv
 
-        if ($pipelines.Count -le 1) {
+        if ($pipelines.Count -eq 0) {
             Write-LogMessage -Message "No pipelines found in pipelines.csv" -Level "Warning"
             return @()
         }
         else {
             Write-LogMessage -Message "Found $($pipelines.Count) pipelines in pipelines.csv" -Level "Info"
             Write-LogMessage -Message "Processing $($pipelines.Count) pipelines..." -Level "Info"
-            $updatedPipelines = $pipelines | ForEach-Object {
-                $_ | Add-Member -MemberType NoteProperty -Name "serviceConnection" -Value $_.serviceConnection -Force
-                $_ | Add-Member -MemberType NoteProperty -Name "ghorg" -Value $githubOrg -Force
-                $_ | Add-Member -MemberType NoteProperty -Name "ghrepo" -Value $_.repo -Force
-                $_
+            $outputPipelines = foreach ($pipeline in $pipelines) {
+                [pscustomobject]@{
+                    org               = $pipeline.org
+                    teamproject       = $pipeline.teamproject
+                    repo              = $pipeline.repo
+                    pipeline          = $pipeline.pipeline
+                    serviceConnection = $pipeline.serviceConnection
+                    ghorg             = $githubOrg
+                    ghrepo            = $pipeline.repo
+                }
             }
             if ([string]::IsNullOrWhiteSpace($OutputPath)) {
                 $OutputPath = $PipelinesCSVPath
             }
-            $outputPipelines = $updatedPipelines | Select-Object -Property org, teamproject, repo, pipeline, serviceConnection, ghorg, ghrepo
             $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
             Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
             Write-LogMessage -Message "Added serviceConnection, ghorg, and ghrepo columns to pipelines.csv" -Level "Success"
-            Write-LogMessage -Message "ghorg: $githubOrg (from migration-config.json)" -Level "Info"
+            Write-LogMessage -Message "ghorg: $githubOrg (from GH_ORG environment variable)" -Level "Info"
             Write-LogMessage -Message "ghrepo: Same as ADO repository name" -Level "Info"
             Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with pipeline rewiring." -Level "Info"
             return $outputPipelines
@@ -564,70 +383,8 @@ function Set-GitHubColumnsToPipelinesCSV {
     }
 }
 
-# ========================================
-# 8. Environment Variable Swap
-# ========================================
-
-<#
-.SYNOPSIS
-    Swaps two string values and assigns them to GH_PAT and GH_BoardsPAT environment variables.
-
-.DESCRIPTION
-    Takes two string variables, swaps their values, and assigns them to the environment variables
-    GH_PAT and GH_BoardsPAT. Displays the swapped values on the console.
-
-.PARAMETER FirstValue
-    The first string value to swap.
-
-.PARAMETER SecondValue
-    The second string value to swap.
-
-.EXAMPLE
-    Set-EnvVarsSwap -FirstValue "token1" -SecondValue "token2"
-    # Assigns token2 to GH_PAT and token1 to GH_BoardsPAT
-#>
-function Set-EnvVarsSwap {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$FirstValue,
-
-        [Parameter(Mandatory = $true)]
-        [string]$SecondValue
-    )
-
-    try {
-        # Swap the values
-        $temp = $FirstValue
-        $FirstValue = $SecondValue
-        $SecondValue = $temp
-
-        # Assign to environment variables both ways
-        $env:GH_PAT = $FirstValue
-        $env:GH_BoardsPAT = $SecondValue
-        [Environment]::SetEnvironmentVariable('GH_PAT', $FirstValue, 'Process')
-        [Environment]::SetEnvironmentVariable('GH_BoardsPAT', $SecondValue, 'Process')
-
-    }
-    catch {
-        Write-LogMessage -Message "Failed to swap environment variables: $_" -Level "Error"
-        throw
-    }
-}
-
 
 # ========================================
 # Module Exports
 # ========================================
-
-Export-ModuleMember -Function @(
-    'Write-LogMessage',    
-    'Test-RequiredPATs',
-    'Get-MigrationConfig',
-    'Get-LatestStateFile',
-    'Get-ProjectServiceConnections',
-    'New-RepositoryMapping',
-    'Set-GitHubColumnsToReposCSV',
-    'Set-GitHubColumnsToPipelinesCSV',
-    'Set-EnvVarsSwap'
-)
+Export-ModuleMember -Function *

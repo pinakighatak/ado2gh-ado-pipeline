@@ -1,10 +1,6 @@
 {
-  "adoOrganization": "MCAPS-908758",
-  "githubOrganization": "Pinaki-IT",
   "scripts": {
-    "inventory": {
-      "adoOrg": "MCAPS-908758"
-    },
+    "inventory": {},
     "checkActiveProcess": {
       "repoCSV": "repos.csv"
     },

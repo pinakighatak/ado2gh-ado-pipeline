@@ -1,9 +1,10 @@
 # Migration pipeline generated files
 # Generated during Stage 3: Migration
-migration-*.txt
-repo_migration_output-*.csv
-repos_with_status.csv
-*.result
+**/migration-*.txt
+
+**/repo_migration_output-*.csv
+**/repos_with_status.csv
+**/*.result
 
 # Generated during Stage 4: Validation
 validation-log-*.txt
@@ -46,4 +47,5 @@ tmp/
 temp/
 
 # Ignore all the files created in the process of migration
-*.log
+**/*.log
+**/migration-*.json

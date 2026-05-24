@@ -96,22 +96,23 @@ stages:
                 gh extension list
 
           - task: PowerShell@2
-            displayName: "Run 0_Inventory.ps1 Script"
+            displayName: "Run Inventory Script"
             inputs:
               workingDirectory: "$(System.DefaultWorkingDirectory)"
               targetType: "filePath"
               filePath: "$(System.DefaultWorkingDirectory)/scripts/powershell/0_Inventory.ps1"
-              arguments: '-AdoOrg "$(ADO_ORG)" -AdoPat "$(ADO_PAT)" -GithubPat "$(GH_PAT)" -GithubBoardsPat "$(GH_BoardsPAT)"'
+              arguments: >-
+                -AdoOrg "$(ADO_ORG)" -GhOrg "$(GH_ORG)" -AdoPat "$(ADO_PAT)" -GithubPat "$(GH_PAT)" -GithubBoardsPat
+                "$(GH_BoardsPAT)"
               pwsh: true
               failOnStderr: true
 
           # Step 2 — Collect outputs (logs + csv) into staging folder
           - task: CopyFiles@2
-            displayName: "Collect log and csv outputs"
+            displayName: "Get CSV files"
             inputs:
               sourceFolder: "$(System.DefaultWorkingDirectory)"
               contents: |
-                *.log
                 *.csv
               targetFolder: "$(Build.ArtifactStagingDirectory)"
 

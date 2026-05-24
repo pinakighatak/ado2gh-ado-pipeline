@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Microsoft
-# Contributors: Vamsi Cherukuri, Pinaki Ghatak
+# Contributors: Pinaki Ghatak
 # MIT License
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,117 +20,101 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# ADO2GH Step 0: Generate Inventory Report
-#
-# Description:
-#   This script generates an inventory report of Azure DevOps repositories at the
-#   organization level using the gh ado2gh CLI extension. This report is used to
-#   identify repositories for migration planning.
-#
-# Prerequisites:
-#   - ADO_PAT environment variable set with full access scope
-#   - migration-config.json exists with proper configuration
-#
-# Order of operations:
-# [1/3] Validate ADO PAT tokens
-# [2/3] Load configuration from migration-config.json
-#       - Reads adoOrganization from config.scripts.inventory.adoOrg
-# [3/3] Generate inventory report using gh ado2gh inventory-report
-#       - Creates CSV files in current directory
-# [4/4] Add GitHub organization columns to repos.csv
-#       - Adds ghorg and ghrepo columns
-#
-# Usage:
-#   .\0_Inventory.ps1
-#   .\0_Inventory.ps1 -ConfigPath "custom-config.json"
-#
-# Output Files:
-#   - orgs.csv (list of ADO organizations)
-#   - team-projects.csv (list of team projects)
-#   - repos.csv (list of repositories - used by subsequent scripts)
-#   - pipelines.csv (list of pipelines)
+<#
+.SYNOPSIS
+    Generates Azure DevOps inventory CSV files used by the migration workflow.
 
+.DESCRIPTION
+    Runs the gh ado2gh inventory-report command for the target Azure DevOps
+    organization, then enriches the generated repos.csv and pipelines.csv files
+    with GitHub-specific columns required by the migration and rewiring stages.
+
+    Parameter values are treated as overrides. When a parameter is omitted, the
+    script falls back to the corresponding environment variable.
+
+.PARAMETER AdoOrg
+    Azure DevOps organization name. Overrides the ADO_ORG environment variable.
+
+.PARAMETER GhOrg
+    GitHub organization name. Overrides the GH_ORG environment variable.
+
+.PARAMETER AdoPat
+    Azure DevOps personal access token. Also applied to AZURE_DEVOPS_EXT_PAT.
+
+.PARAMETER GithubPat
+    GitHub personal access token. Overrides the GH_PAT environment variable.
+
+.PARAMETER GithubBoardsPat
+    GitHub token used for Boards integration. Overrides the GH_BoardsPAT environment variable.
+
+.PARAMETER ConfigPath
+    Path to the migration configuration file. Defaults to migration-config.json in this script directory.
+
+.EXAMPLE
+    .\0_Inventory.ps1
+
+.EXAMPLE
+    .\0_Inventory.ps1 -AdoOrg "contoso" -GhOrg "contoso-org" -ConfigPath ".\migration-config.json"
+#>
+[CmdletBinding()]
 param(
-    [string]$AdoOrg = "",  # Optional override
-    [string]$AdoPat = "",  # Optional override
-    [string]$GithubPat = "",  # Optional override
-    [string]$GithubBoardsPat = ""  # Optional override
-
+    [string]$AdoOrg = "",
+    [string]$GhOrg = "",
+    [string]$AdoPat = "",
+    [string]$GithubPat = "",
+    [string]$GithubBoardsPat = ""
 )
 
 # Import helper module
 $scriptPath = $PSScriptRoot
+$ConfigPath = Join-Path $scriptPath 'migration-config.json'
+Import-Module (Join-Path $scriptPath 'MigrationHelpers.psm1') -Force -ErrorAction Stop
 
-$ConfigPath = "$scriptPath\migration-config.json" 
-#$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-Import-Module "$scriptPath\MigrationHelpers.psm1" -Force -ErrorAction Stop
+# Apply parameter overrides only when values are provided.
+$environmentOverrides = @(
+    @{ ParameterName = 'AdoOrg'; ParameterValue = $AdoOrg; EnvironmentVariableName = 'ADO_ORG' },
+    @{ ParameterName = 'GhOrg'; ParameterValue = $GhOrg; EnvironmentVariableName = 'GH_ORG' },
+    @{ ParameterName = 'AdoPat'; ParameterValue = $AdoPat; EnvironmentVariableName = 'ADO_PAT' },
+    @{ ParameterName = 'AdoPat'; ParameterValue = $AdoPat; EnvironmentVariableName = 'AZURE_DEVOPS_EXT_PAT' },
+    @{ ParameterName = 'GithubPat'; ParameterValue = $GithubPat; EnvironmentVariableName = 'GH_PAT' },
+    @{ ParameterName = 'GithubBoardsPat'; ParameterValue = $GithubBoardsPat; EnvironmentVariableName = 'GH_BoardsPAT' }
+)
 
-Write-LogMessage -Message "Starting Inventory Report Generation" -Level "Info"
+foreach ($override in $environmentOverrides) {
+    if ([string]::IsNullOrWhiteSpace($override.ParameterValue)) {
+        continue
+    }
 
-#1 . Set environment variables for PAT tokens (if provided as parameters)
-
-#Add ADOOrg assingment from parameter if provided
-if (-not [string]::IsNullOrWhiteSpace($AdoOrg)) {
-    Write-LogMessage -Message "ADO Organization provided as parameter: $AdoOrg" -Level "Info"
-}
-else {
-    Write-LogMessage -Message "No ADO Organization provided as parameter, will read from config file" -Level "Info"
-}
-
-
-if (-not [string]::IsNullOrWhiteSpace($AdoPat)) {
-    $env:ADO_PAT = $AdoPat
-    [Environment]::SetEnvironmentVariable("ADO_PAT", $AdoPat, "Process")
-    Write-LogMessage -Message "ADO_PAT environment variable set from parameter" -Level "Info"
-
-    $env:AZURE_DEVOPS_EXT_PAT = $AdoPat
-    [Environment]::SetEnvironmentVariable("AZURE_DEVOPS_EXT_PAT", $AdoPat, "Process")
-    Write-LogMessage -Message "AZURE_DEVOPS_EXT_PAT environment variable set from parameter" -Level "Info"
+    Set-Item -Path "Env:$($override.EnvironmentVariableName)" -Value $override.ParameterValue
+    Write-LogMessage -Message "$($override.EnvironmentVariableName) environment variable set from parameter override" -Level "Info"
 }
 
-if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
-    $env:GH_PAT = $GithubPat
-    [Environment]::SetEnvironmentVariable("GH_PAT", $GithubPat, "Process")
-    Write-LogMessage -Message "GH_PAT environment variable set from parameter" -Level "Info"
-}
 
-if (-not [string]::IsNullOrWhiteSpace($GithubBoardsPat)) {
-    $env:GH_BoardsPAT = $GithubBoardsPat
-    [Environment]::SetEnvironmentVariable("GH_BoardsPAT", $GithubBoardsPat, "Process")
-    Write-LogMessage -Message "GH_BoardsPAT environment variable set from parameter" -Level "Info"
-}
-
-# 2. Validate PAT tokens
+# 1. Validate PAT tokens
 Write-LogMessage -Message "[1/4] Checking existence of PAT tokens..." -Level "Info"
-if (!(Test-RequiredPATs)) { exit 1 }
+if (!(Test-RequiredPATs -GitHubBoardsRequired $true)) { exit 1 }
+Write-LogMessage -Message "GH_ORG environment variable detected: $($env:GH_ORG)" -Level "Info"
 
-# 3. Load configuration
-Write-LogMessage -Message "[2/4] Loading configuration..." -Level "Info"
-$config = Get-MigrationConfig -ConfigPath $ConfigPath
-if (!$config) { exit 1 }
-
-if (-not [string]::IsNullOrWhiteSpace($AdoOrg)) {
-    Write-LogMessage -Message "ADO Organization provided as parameter: $AdoOrg" -Level "Info"
-}
-else {
-    $AdoOrg = $config.scripts.inventory.adoOrg
-    Write-LogMessage -Message "ADO Organization: $AdoOrg" -Level "Info"
+# 2. Validate configuration path
+Write-LogMessage -Message "[2/4] Validating configuration path..." -Level "Info"
+if (-not (Test-Path -LiteralPath $ConfigPath)) {
+    Write-LogMessage -Message "Configuration file not found: $ConfigPath" -Level "Error"
+    exit 1
 }
 
-# 4. Generate inventory report
+$resolvedAdoOrg = $env:ADO_ORG
+
+
+# 3. Generate inventory report
 Write-LogMessage -Message "[3/4] Generating inventory report..." -Level "Info"
 Write-LogMessage -Message "This may take several minutes depending on organization size..." -Level "Info"
-
-# Write-LogMessage -Message "Logging in to Azure DevOps..." -Level "Info"
-# $env:AZURE_DEVOPS_EXT_PAT | az devops login --organization https://dev.azure.com/$AdoOrg
-gh ado2gh inventory-report --ado-org $AdoOrg
+gh ado2gh inventory-report --ado-org $resolvedAdoOrg
 
 # Check command result
 if ($LASTEXITCODE -ne 0) {
     Write-LogMessage -Message "Inventory report generation failed" -Level "Error"
     exit $LASTEXITCODE
 }
-
 
 Write-LogMessage -Message "Inventory report generated successfully!" -Level "Success"
 

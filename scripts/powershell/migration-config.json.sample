@@ -1,10 +1,6 @@
 {
-  "adoOrganization": "your-ado-organization",
-  "githubOrganization": "your-github-organization",
   "scripts": {
-    "inventory": {
-      "adoOrg": "your-ado-organization"
-    },
+    "inventory": {},
     "checkActiveProcess": {
       "repoCSV": "repos.csv"
     },
