@@ -72,6 +72,11 @@ $env:ADO_PAT=$AdoPat
 [Environment]::SetEnvironmentVariable("ADO_PAT", $AdoPat, "Process")
 Write-LogMessage -Message "ADO_PAT environment variable set from parameter" -Level "Info"
 
+$env:AZURE_DEVOPS_EXT_PAT=$AdoPat
+[Environment]::SetEnvironmentVariable("AZURE_DEVOPS_EXT_PAT", $AdoPat, "Process")
+Write-LogMessage -Message "AZURE_DEVOPS_EXT_PAT environment variable set from parameter"
+
+
 $env:GH_PAT=$GithubPat
 [Environment]::SetEnvironmentVariable("GH_PAT", $GithubPat, "Process")
 Write-LogMessage -Message "GH_PAT environment variable set from parameter" -Level "Info"
@@ -96,7 +101,8 @@ Write-LogMessage -Message "ADO Organization: $AdoOrg" -Level "Info"
 Write-LogMessage -Message "[3/4] Generating inventory report..." -Level "Info"
 Write-LogMessage -Message "This may take several minutes depending on organization size..." -Level "Info"
 
-gh ado2gh inventory-report --ado-org $AdoOrg --ado-pat $env:ADO_PAT
+Write-Output "$(System.AccessToken)" | az devops login --organization$AdoOrg
+gh ado2gh inventory-report --ado-org $AdoOrg
 
 # Check command result
 if ($LASTEXITCODE -ne 0) {
