@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Microsoft
-# Contributors: Vamsi Cherukuri, Pinaki Ghatak
+# Contributors: Pinaki Ghatak
 # 
 # MIT License
 # 
@@ -161,8 +161,9 @@ function Test-RequiredPATs {
 
 .DESCRIPTION
     Reads the repos.csv file and adds two new columns:
-    - ghorg: The GitHub organization from the GH_ORG environment variable
-    - ghrepo: The repository name (same as the repo column value)
+    - github_org: The GitHub organization from the GH_ORG environment variable
+    - github_repo: The repository name (same as the repo column value)
+    - gh_repo_visibility: The target GitHub repository visibility
     Provides fallback path resolution if files are not found in the script directory.
 
 .PARAMETER RepoCSVPath
@@ -237,13 +238,15 @@ function Set-GitHubColumnsToReposCSV {
         Write-LogMessage -Message "Processing $($repos.Count) repositories..." -Level "Info"
 
         # Build the output rows directly to avoid repeated object mutation.
+        
+        
         $outputRepos = foreach ($repo in $repos) {
             [pscustomobject]@{
                 org                = $repo.org
                 teamproject        = $repo.teamproject
                 repo               = $repo.repo
-                github_org         = $githubOrg
-                github_repo        = $repo.repo
+                github_org         = $repo.ghorg
+                github_repo        = $repo.ghrepo
                 gh_repo_visibility = 'private'
             }
         }
@@ -254,9 +257,9 @@ function Set-GitHubColumnsToReposCSV {
         }
 
         # Export the updated CSV
-        $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -Force
+        $outputRepos | Export-Csv -Path $OutputPath -NoTypeInformation -UseQuotes AsNeeded -Force
         Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
-        Write-LogMessage -Message "Restructured columns to repos.csv" -Level Success
+        Write-LogMessage -Message "Added github_org, github_repo, and gh_repo_visibility columns to repos.csv" -Level "Success"
         return $outputRepos
     }
     catch {
@@ -276,8 +279,8 @@ function Set-GitHubColumnsToReposCSV {
 .DESCRIPTION
     Reads the pipelines.csv file and ensures it contains the pipeline migration columns:
     - serviceConnection: Existing Azure DevOps service connection identifier
-    - ghorg: The GitHub organization from the GH_ORG environment variable
-    - ghrepo: The repository name (same as the repo column value)
+    - github_org: The GitHub organization from the GH_ORG environment variable
+    - github_repo: The repository name (same as the repo column value)
     Provides fallback path resolution if files are not found in the script directory.
 
 .PARAMETER PipelinesCSVPath
@@ -366,9 +369,9 @@ function Set-GitHubColumnsToPipelinesCSV {
             if ([string]::IsNullOrWhiteSpace($OutputPath)) {
                 $OutputPath = $PipelinesCSVPath
             }
-            $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -Force
+            $outputPipelines | Export-Csv -Path $OutputPath -NoTypeInformation -UseQuotes AsNeeded -Force
             Write-LogMessage -Message "Output written to: $OutputPath" -Level "Info"
-            Write-LogMessage -Message "If you need different GitHub repository names, edit the 'ghrepo' column in $OutputPath before proceeding with pipeline rewiring." -Level "Info"
+            Write-LogMessage -Message "If you need different GitHub repository names, edit the 'github_repo' column in $OutputPath before proceeding with pipeline rewiring." -Level "Info"
             return $outputPipelines
         }
     }
