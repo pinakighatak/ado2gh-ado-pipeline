@@ -1,7 +1,6 @@
 # Copyright (c) 2026 Microsoft
 # Contributors: Pinaki Ghatak
 trigger:
-  
   # - main
   # - master
   - none
@@ -20,7 +19,7 @@ parameters:
     default: "Default"
 
 variables:
-  - group: "core-entauto-github-migration-secrets"  # Reference to a variable group containing secrets like ADO_PAT, GH_PAT, etc.
+  - group: "core-entauto-github-migration-secrets" # Reference to a variable group containing secrets like ADO_PAT, GH_PAT, etc.
 
 pool:
   vmImage: "ubuntu-latest"
@@ -61,9 +60,6 @@ stages:
                   Write-Host "Installing Azure CLI..."
                   curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
                 }
-                else {
-                  Write-Host "Azure CLI already installed. Skipping installation."
-                }
 
                 if ($needsGitHubCli) {
                   Write-Host "Installing GitHub CLI..."
@@ -77,23 +73,12 @@ stages:
                   sudo apt update
                   sudo apt install -y gh
                 }
-                else {
-                  Write-Host "GitHub CLI already installed. Skipping installation."
-                }
 
                 $ado2ghInstalled = gh extension list | Select-String -Pattern '^github/gh-ado2gh\b' -Quiet
                 if (-not $ado2ghInstalled) {
                   Write-Host "Installing ado2gh GitHub CLI extension..."
                   gh extension install github/gh-ado2gh
                 }
-                else {
-                  Write-Host "ado2gh GitHub CLI extension already installed. Skipping installation."
-                }
-
-                Write-Host "Installed versions:"
-                az version
-                gh --version
-                gh extension list
 
           - task: PowerShell@2
             displayName: "Run Inventory Script"
@@ -107,23 +92,23 @@ stages:
               pwsh: true
               failOnStderr: true
 
-          # Step 2 — Collect outputs (logs + csv) into staging folder
+          # Step 2 — Stage only the four generated inventory CSV files.
           - task: CopyFiles@2
-            displayName: "Get CSV files"
+            displayName: "Stage inventory CSV files"
             inputs:
-              sourceFolder: "$(System.DefaultWorkingDirectory)/scripts/powershell"
+              sourceFolder: "$(System.DefaultWorkingDirectory)"
               contents: |
                 orgs.csv
                 team-projects.csv
                 repos.csv
                 pipelines.csv
-              targetFolder: "$(Pipeline.Workspace)/inventory-artifacts"
+              targetFolder: "$(Agent.TempDirectory)/inventory-csv"
               cleanTargetFolder: true
-              flattenFolders: true
+              overWrite: true
 
           - task: PublishPipelineArtifact@1
-            displayName: "Publish Pipeline Artifact"
+            displayName: "Publish Inventory Artifact"
             inputs:
-              pathToPublish: "$(Pipeline.Workspace)/inventory-artifacts"
+              pathToPublish: "$(Agent.TempDirectory)/inventory-csv"
               artifactName: "inventory-artifacts"
               publishLocation: "pipeline"
