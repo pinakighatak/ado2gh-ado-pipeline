@@ -121,8 +121,8 @@ function Test-RequiredPATs {
     [CmdletBinding()]
     param(
         [bool]$ADORequired = $true,
-        [bool]$GitHubRequired = $true,
-        [bool]$GitHubBoardsRequired = $true
+        [bool]$GitHubRequired = $true
+
     )
     
     $allValid = $true
@@ -139,11 +139,6 @@ function Test-RequiredPATs {
         $allValid = $false
     }
     
-    if ($GitHubBoardsRequired -and !$env:GH_BoardsPAT) {
-        Write-LogMessage -Message "GH_BoardsPAT environment variable not set" -Level "Error"
-        Write-LogMessage -Message "Please set your GitHub Boards PAT as documented in README" -Level "Warning"
-        $allValid = $false
-    }
     if ($allValid) {
         Write-LogMessage -Message "PAT tokens set successfully" -Level "Success"
     }
@@ -199,7 +194,7 @@ function Set-GitHubColumnsToReposCSV {
         if (-not (Test-Path $RepoCSVPath)) {
             $altRepo = Join-Path (Get-Location) (Split-Path $RepoCSVPath -Leaf)
             if (Test-Path $altRepo) {
-                Write-LogMessage -Message "repos.csv not found at default; using $altRepo" -Level "Error"
+                Write-LogMessage -Message "repos.csv not found at default; using $altRepo" -Level "Warning"
                 $RepoCSVPath = $altRepo
             }
             else {

@@ -87,8 +87,7 @@ stages:
               targetType: "filePath"
               filePath: "$(System.DefaultWorkingDirectory)/scripts/powershell/0_Inventory.ps1"
               arguments: >-
-                -AdoOrg "$(ADO_ORG)" -GhOrg "$(GH_ORG)" -AdoPat "$(ADO_PAT)" -GithubPat "$(GH_PAT)" -GithubBoardsPat
-                "$(GH_BoardsPAT)"
+                -AdoOrg "$(ADO_ORG)" -GhOrg "$(GH_ORG)" -AdoPat "$(ADO_PAT)" -GithubPat "$(GH_PAT)"
               pwsh: true
               failOnStderr: true
 

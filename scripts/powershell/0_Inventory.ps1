@@ -61,8 +61,8 @@ param(
     [string]$AdoOrg = "",
     [string]$GhOrg = "",
     [string]$AdoPat = "",
-    [string]$GithubPat = "",
-    [string]$GithubBoardsPat = ""
+    [string]$GithubPat = ""
+
 )
 
 # Import helper module
@@ -76,8 +76,7 @@ $environmentOverrides = @(
     @{ ParameterName = 'GhOrg'; ParameterValue = $GhOrg; EnvironmentVariableName = 'GH_ORG' },
     @{ ParameterName = 'AdoPat'; ParameterValue = $AdoPat; EnvironmentVariableName = 'ADO_PAT' },
     @{ ParameterName = 'AdoPat'; ParameterValue = $AdoPat; EnvironmentVariableName = 'AZURE_DEVOPS_EXT_PAT' },
-    @{ ParameterName = 'GithubPat'; ParameterValue = $GithubPat; EnvironmentVariableName = 'GH_PAT' },
-    @{ ParameterName = 'GithubBoardsPat'; ParameterValue = $GithubBoardsPat; EnvironmentVariableName = 'GH_BoardsPAT' }
+    @{ ParameterName = 'GithubPat'; ParameterValue = $GithubPat; EnvironmentVariableName = 'GH_PAT' }
 )
 
 foreach ($override in $environmentOverrides) {
@@ -86,7 +85,7 @@ foreach ($override in $environmentOverrides) {
     }
 
     Set-Item -Path "Env:$($override.EnvironmentVariableName)" -Value $override.ParameterValue
-    Write-LogMessage -Message "$($override.EnvironmentVariableName) environment variable set: $($override.ParameterValue)" -Level "Info"
+    Write-LogMessage -Message "$($override.EnvironmentVariableName) environment variable set" -Level "Info"
 }
 
 
