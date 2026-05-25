@@ -1,4 +1,11 @@
-trigger: none
+# Copyright (c) 2026 Microsoft
+trigger:
+  
+  # - main
+  # - master
+  - none
+
+name: $(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 parameters:
 - name: runDemoRepoMigration
@@ -55,7 +62,7 @@ stages:
                 VALIDATION_FAILED=0
                 
                 # Check if repos.csv exists
-                CSV_FILE="bash/repos.csv"
+                CSV_FILE="scripts/bash/repos.csv"
                 if [ ! -f "$CSV_FILE" ]; then
                   echo "❌ ERROR: repos.csv file not found at $CSV_FILE"
                   VALIDATION_FAILED=1
@@ -124,7 +131,7 @@ stages:
                 VALIDATION_FAILED=0
                 
                 # Check if pipelines.csv exists
-                CSV_FILE="bash/pipelines.csv"
+                CSV_FILE="scripts/bash/pipelines.csv"
                 if [ ! -f "$CSV_FILE" ]; then
                   echo "❌ ERROR: pipelines.csv file not found at $CSV_FILE"
                   VALIDATION_FAILED=1
@@ -256,7 +263,7 @@ stages:
             displayName: 'Execute Migration Readiness Check'
             inputs:
               targetType: 'filePath'
-              filePath: 'bash/1_pr_pipeline_check.sh'
+              filePath: 'scripts/bash/1_pr_pipeline_check.sh'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               GH_TOKEN: $(GH_PAT)
@@ -339,8 +346,8 @@ stages:
             name: MigrationTask
             inputs:
               targetType: 'filePath'
-              filePath: 'bash/2_migration.sh'
-              arguments: '--csv bash/repos.csv'
+              filePath: 'scripts/bash/2_migration.sh'
+              arguments: '--csv scripts/bash/repos.csv'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               GH_TOKEN: $(GH_PAT)
@@ -427,7 +434,7 @@ stages:
             name: ValidationTask
             inputs:
               targetType: 'filePath'
-              filePath: 'bash/3_post_migration_validation.sh'
+              filePath: 'scripts/bash/3_post_migration_validation.sh'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               GH_TOKEN: $(GH_PAT)
@@ -543,7 +550,7 @@ stages:
             name: RewiringTask
             inputs:
               targetType: 'filePath'
-              filePath: 'bash/4_rewire_pipeline.sh'
+              filePath: 'scripts/bash/4_rewire_pipeline.sh'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               GH_TOKEN: $(GH_PAT)
@@ -663,7 +670,7 @@ stages:
             name: BoardsIntegrationTask
             inputs:
               targetType: 'filePath'
-              filePath: 'bash/5_boards_integration.sh'
+              filePath: 'scripts/bash/5_boards_integration.sh'
               workingDirectory: '$(System.DefaultWorkingDirectory)'
             env:
               # CRITICAL: Using ADO_PAT from azure-boards-integration-secrets variable group

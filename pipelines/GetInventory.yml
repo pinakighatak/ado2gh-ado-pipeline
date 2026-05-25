@@ -1,0 +1,107 @@
+# Copyright (c) 2026 Microsoft
+# Contributors: Pinaki Ghatak
+trigger:
+  # - main
+  # - master
+  - none
+
+name: $(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+parameters:
+  - name: useSelfHostedAgent
+    displayName: "Use Self-Hosted Agent"
+    type: boolean
+    default: false
+
+  - name: selfHostedAgentPool
+    displayName: "Self-Hosted Agent Pool Name (if enabled above)"
+    type: string
+    default: "Default"
+
+variables:
+  - group: "core-entauto-github-migration-secrets" # Reference to a variable group containing secrets like ADO_PAT, GH_PAT, etc.
+
+pool:
+  vmImage: "ubuntu-latest"
+
+stages:
+  - stage: GetInventory
+    displayName: "Get Inventory"
+    jobs:
+      - job: RunInventoryScript
+        displayName: "Getting Inventory"
+        ${{ if eq(parameters.useSelfHostedAgent, true) }}:
+          pool:
+            name: ${{ parameters.selfHostedAgentPool }}
+
+        steps:
+          #- checkout: self
+          # Step 1 — Install GitHub CLI, ado2gh extension, and Azure DevOps CLI
+          - task: PowerShell@2
+            displayName: Install CLI and extensions
+            inputs:
+              pwsh: true
+              targetType: inline
+              script: |
+                $ErrorActionPreference = "Stop"
+
+                $needsAzureCli = -not (Get-Command az -ErrorAction SilentlyContinue)
+                $needsGitHubCli = -not (Get-Command gh -ErrorAction SilentlyContinue)
+
+                if ($needsAzureCli -or $needsGitHubCli) {
+                  Write-Host "Updating apt packages..."
+                  sudo apt-get update
+
+                  Write-Host "Installing prerequisites..."
+                  sudo apt install -y curl ca-certificates gnupg lsb-release
+                }
+
+                if ($needsAzureCli) {
+                  Write-Host "Installing Azure CLI..."
+                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+                }
+
+                if ($needsGitHubCli) {
+                  Write-Host "Installing GitHub CLI..."
+                  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+                    sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+                  sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+
+                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
+                    sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+
+                  sudo apt update
+                  sudo apt install -y gh
+                }
+
+                $ado2ghInstalled = gh extension list | Select-String -Pattern '^github/gh-ado2gh\b' -Quiet
+                if (-not $ado2ghInstalled) {
+                  Write-Host "Installing ado2gh GitHub CLI extension..."
+                  gh extension install github/gh-ado2gh
+                }
+
+          - task: PowerShell@2
+            displayName: "Run Inventory Script"
+            inputs:
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              targetType: "filePath"
+              filePath: "$(System.DefaultWorkingDirectory)/scripts/powershell/0_Inventory.ps1"
+              arguments: >-
+                -AdoOrg "$(ADO_ORG)" -GhOrg "$(GH_ORG)" -AdoPat "$(ADO_PAT)" -GithubPat "$(GH_PAT)"
+              pwsh: true
+              failOnStderr: true
+
+          # Step 2 — Stage only the four generated inventory CSV files.
+          - task: CopyFiles@2
+            displayName: "Copy CSV files"
+            inputs:
+              contents: |
+                repos.csv
+                pipelines.csv
+              targetFolder: "$(Build.artifactstagingdirectory)"
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Inventory Artifact"
+            inputs:
+              targetPath: "$(Build.artifactstagingdirectory)"
+              artifactName: "inventory-artifacts"

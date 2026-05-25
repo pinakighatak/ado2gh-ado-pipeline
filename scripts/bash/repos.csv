@@ -1,0 +1,9 @@
+org,teamproject,repo,github_org,github_repo,gh_repo_visibility
+MCAPS-908758,Parts Unlimited,PartsUnlimited,Pinaki-IT,PartsUnlimited,private
+MCAPS-908758,MCAPS-Azure-908758,AzureFunctions,Pinaki-IT,AzureFunctions,private
+MCAPS-908758,MCAPS-Azure-908758,AzureSQL,Pinaki-IT,AzureSQL,private
+MCAPS-908758,MCAPS-Azure-908758,EFCore-MigrationsBundle-WebAPI,Pinaki-IT,EFCore-MigrationsBundle-WebAPI,private
+MCAPS-908758,eShopWeb,eShopOnWeb,Pinaki-IT,eShopOnWeb,private
+MCAPS-908758,Tailwind Traders,Documents,Pinaki-IT,Documents,private
+MCAPS-908758,Tailwind Traders,TailwindTraders,Pinaki-IT,TailwindTraders,private
+MCAPS-908758,Contoso Air,ContosoAir-tc,Pinaki-IT,ContosoAir-tc,private
