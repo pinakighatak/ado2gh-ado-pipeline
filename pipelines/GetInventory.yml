@@ -94,11 +94,11 @@ stages:
 
           # Step 2 — Stage only the four generated inventory CSV files.
           - task: CopyFiles@2
-            displayName: "Stage CSV files"
+            displayName: "Copy CSV files"
             inputs:
               contents: |
-                **/repos.csv
-                **/pipelines.csv
+                repos.csv
+                pipelines.csv
               targetFolder: "$(Build.artifactstagingdirectory)"
 
           - task: PublishPipelineArtifact@1

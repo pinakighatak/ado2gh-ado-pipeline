@@ -106,7 +106,7 @@ $resolvedAdoOrg = $env:ADO_ORG
 
 
 # 3. Generate inventory report
-Write-LogMessage -Message "[3/4] Generating inventory report..." -Level "Info"
+Write-LogMessage -Message "[3/4] Generating inventory report for organization: $resolvedAdoOrg" -Level "Info"
 Write-LogMessage -Message "This may take several minutes depending on organization size..." -Level "Info"
 gh ado2gh inventory-report --ado-org $resolvedAdoOrg
 
