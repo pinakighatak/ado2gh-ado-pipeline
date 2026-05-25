@@ -91,7 +91,7 @@ foreach ($override in $environmentOverrides) {
 
 # 1. Validate PAT tokens
 Write-LogMessage -Message "[1/4] Checking existence of PAT tokens..." -Level "Info"
-if (!(Test-RequiredPATs -GitHubBoardsRequired $true)) { exit 1 }
+if (!(Test-RequiredPATs)) { exit 1 }
 Write-LogMessage -Message "GH_ORG environment variable detected: $($env:GH_ORG)" -Level "Info"
 
 # 2. Validate configuration path

@@ -99,7 +99,7 @@ function Write-LogMessage {
     Validates required Personal Access Tokens (PATs) are set in environment variables.
 
 .DESCRIPTION
-    Checks if ADO_PAT and/or GH_PAT, and GH_BoardsPAT environment variables are set based on requirements.
+    Checks if ADO_PAT and/or GH_PAT environment variables are set based on requirements.
     Used by all scripts to ensure authentication tokens are available before proceeding.
 
 .PARAMETER ADORequired
@@ -108,14 +108,9 @@ function Write-LogMessage {
 .PARAMETER GitHubRequired
     Whether GitHub PAT is required. Default is $true.
 
-.PARAMETER GitHubBoardsRequired
-    Whether GitHub Boards PAT is required. Default is $false.
-
 .EXAMPLE
     if (!(Test-RequiredPATs)) { exit 1 }
 
-.EXAMPLE
-    if (!(Test-RequiredPATs -ADORequired $false -GitHubBoardsRequired $true)) { exit 1 }
 #>
 function Test-RequiredPATs {
     [CmdletBinding()]

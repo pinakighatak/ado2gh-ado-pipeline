@@ -75,7 +75,7 @@ flowchart TB
    Stage2 --> Stage3["<b>Stage 3: Pre-migration Check</b><br>Check for active PRs and running pipelines"]
    Stage3 --> Gate1["<b>User Approval</b><br>Approval to trigger the next stage"]
    Gate1 -- Approved --> Stage4["<b>Stage 4: Repository Migration</b><br>Migrate repositories with commit history and branches"]
-   Gate1 -- Rejected --> End1["<b>Pipeline Cancelled</b>"]
+   Gate1 -- Rejected --> End1["Pipeline Cancelled"]
    Stage4 --> Stage5["<b>Stage 5: Migration Validation</b><br>Compare ADO and GitHub repositories by branch,<br>commit count, and latest SHA integrity"]
    Stage5 --> Stage6["<b>Stage 6: Pipeline Rewiring</b><br>Rewire Azure DevOps YAML pipelines to GitHub repositories"]
    Stage6 --> Stage7["<b>Stage 7: Boards Integration</b><br>Integrate Azure Boards and enable <b>AB#</b> linking"]
@@ -121,6 +121,8 @@ Each stage executes a specific script and generates detailed logs. Stages 4-6 au
 First and foremost, we need 2 files as inputs i.e. `pipelines.csv` and `repos.csv`. if you are running this pipeline for the first time, you can generate those csv fiels by running the `GetInventory` pipeline, you'd find here in this repo in the `/pipelines` folder.
 
 After this pipeline is run successfully, these csv files can be downloaded from the artifacts of the pipeline run. 
+
+>📝**Note** : Run this pipeline only when needed. The pipeline will produce the necessary files for all the repos (and it's pipelines) for a given organization.
 
 ### Stage 2️⃣: Prerequisite Validation
 The 2 files from stage 1 above, i.e. `repos.csv` and `pipelines.csv` should not be copies to your repo in the `/bash` folder.  
@@ -380,7 +382,7 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    ```
 
 #### 2️⃣ **Prepare CSV configuration files**
-   ```bash
+   ```shell
    # Edit repos.csv - Add repositories for your first run
    code bash/repos.csv
    
@@ -389,17 +391,30 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    ```
 
    **Example repos.csv:**
-   ```csv
+   ```
    org,teamproject,repo,github_org,github_repo,gh_repo_visibility
    mycompany,Platform,api-service,mycompany-gh,platform-api,private
    mycompany,Platform,web-frontend,mycompany-gh,platform-web,private
    ```
+> This is structured as :
+
+| org       | teamproject | repo         | github_org   | github_repo  | gh_repo_visibility |
+|-----------|-------------|--------------|--------------|--------------|--------------------|
+| mycompany | Platform    | api-service  | mycompany-gh | platform-api | private            |
+| mycompany | Platform    | web-frontend | mycompany-gh | platform-web | private            |
+
    **Example pipelines.csv:**
    ```csv
    org,teamproject,repo,pipeline,url,serviceConnection,github_org,github_repo
    mycompany,Platform,api-service,\api-service-ci,https://dev.azure.com/mycompany/Platform/_build?definitionId=123,abc123-def4-56gh-78ij-90klmn1234op,mycompany-gh,platform-api
    mycompany,Platform,web-frontend,\web-frontend-ci,https://dev.azure.com/mycompany/Platform/_build?definitionId=456,abc123-def4-56gh-78ij-90klmn1234op,mycompany-gh,platform-web
    ```
+> This is structured as :   
+
+| org       | teamproject | repo         | pipeline         | url                                                              | serviceConnection                  | github_org   | github_repo  |
+|-----------|-------------|--------------|------------------|------------------------------------------------------------------|------------------------------------|--------------|--------------|
+| mycompany | Platform    | api-service  | \api-service-ci  | https://dev.azure.com/mycompany/Platform/_build?definitionId=123 | abc123-def4-56gh-78ij-90klmn1234op | mycompany-gh | platform-api |
+| mycompany | Platform    | web-frontend | \web-frontend-ci | https://dev.azure.com/mycompany/Platform/_build?definitionId=456 | abc123-def4-56gh-78ij-90klmn1234op | mycompany-gh | platform-web |
 
 #### 3️⃣ **Commit and push changes**
    ```bash
@@ -608,4 +623,4 @@ SOFTWARE.
 
 ---
 
-**Made with ❤️ for the DevOps community**
+**Made with ❤️ for the DevOps community** | Updated: 25-May-2026
