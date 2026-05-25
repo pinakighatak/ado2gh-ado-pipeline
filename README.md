@@ -391,17 +391,17 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    ```
 
    **Example repos.csv:**
-   ```
+   ```csv
    org,teamproject,repo,github_org,github_repo,gh_repo_visibility
    mycompany,Platform,api-service,mycompany-gh,platform-api,private
    mycompany,Platform,web-frontend,mycompany-gh,platform-web,private
    ```
-> This is structured as :
+   > This is structured as :
 
-| org       | teamproject | repo         | github_org   | github_repo  | gh_repo_visibility |
-|-----------|-------------|--------------|--------------|--------------|--------------------|
-| mycompany | Platform    | api-service  | mycompany-gh | platform-api | private            |
-| mycompany | Platform    | web-frontend | mycompany-gh | platform-web | private            |
+   | org       | teamproject | repo         | github_org   | github_repo  | gh_repo_visibility |
+   |-----------|-------------|--------------|--------------|--------------|--------------------|
+   | mycompany | Platform    | api-service  | mycompany-gh | platform-api | private            |
+   | mycompany | Platform    | web-frontend | mycompany-gh | platform-web | private            |
 
    **Example pipelines.csv:**
    ```csv
@@ -411,8 +411,8 @@ Enable the `Repo migration & validation only` parameter in the Azure DevOps pipe
    ```
 > This is structured as :   
 
-| org       | teamproject | repo         | pipeline         | url                                                              | serviceConnection                  | github_org   | github_repo  |
-|-----------|-------------|--------------|------------------|------------------------------------------------------------------|------------------------------------|--------------|--------------|
+| org       | teamproject | repo| pipeline | url| serviceConnection| github_org   | github_repo  |
+|-----------|-------------|-----|----------|----|------------------|--------------|--------------|
 | mycompany | Platform    | api-service  | \api-service-ci  | https://dev.azure.com/mycompany/Platform/_build?definitionId=123 | abc123-def4-56gh-78ij-90klmn1234op | mycompany-gh | platform-api |
 | mycompany | Platform    | web-frontend | \web-frontend-ci | https://dev.azure.com/mycompany/Platform/_build?definitionId=456 | abc123-def4-56gh-78ij-90klmn1234op | mycompany-gh | platform-web |
 
